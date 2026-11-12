@@ -7,15 +7,19 @@
       "dependencies": {
         "@blockshub/pawnote-lts": "1.6.4",
         "@getpapillon/papicons": "^0.2.3",
+        "@literate.ink/utilities": "1.0.0-10641118381.1",
         "@mdx-js/loader": "^3.1.1",
         "@mdx-js/react": "^3.1.1",
         "@next/mdx": "^16.4.3",
         "@types/mdx": "^2.0.14",
         "@web-kits/audio": "^0.2.0",
         "dompurify": "^3.4.17",
+        "html-entities": "^2.5.2",
         "jsqr": "^1.4.0",
         "motion": "^14.0.0",
         "next": "16.4.3",
+        "node-forge": "^1.3.1",
+        "pako": "^2.1.0",
         "react": "19.3.0",
         "react-dom": "19.3.0",
         "rehype-pretty-code": "^0.14.5",
@@ -41,9 +45,6 @@
     "sharp",
     "unrs-resolver",
   ],
-  "patchedDependencies": {
-    "@blockshub/pawnote-lts@1.6.4": "patches/pawnote-lts-1.6.4-v2.patch",
-  },
   "packages": {
     "@alloc/quick-lru": ["@alloc/quick-lru@5.3.0", "", {}, "sha512-U4+70Pc5ZS9osnCBCE5Jha/ciHM+Yp+CNMNC/7HvYbNRk1Ldd+f7qO65W5qfhu/TCv+/ozljlXXe9Nj8419DMA=="],
 

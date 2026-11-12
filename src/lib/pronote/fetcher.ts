@@ -1,4 +1,4 @@
-import type { createSessionHandle } from "@blockshub/pawnote-lts";
+import type { createSessionHandle } from "./vendor/pawnote";
 
 type Fetcher = NonNullable<Parameters<typeof createSessionHandle>[0]>;
 

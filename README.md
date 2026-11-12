@@ -43,5 +43,6 @@ Accueil, emploi du temps (avec le contenu des cours), devoirs (cocher « fait »
 ## Crédits et licences
 
 - Le site vitrine (pages, textes, images, logo) vient de [PapillonApp/papillon.bzh](https://github.com/PapillonApp/papillon.bzh) : © Association Papillon & contributeur·rice·s, tous droits réservés. Utilisé ici dans un cadre scolaire uniquement.
+- `src/lib/pronote/vendor/pawnote.js` est la bibliothèque [pawnote](https://github.com/LiterateInk/Pawnote) 1.6.4 (GPL-3.0) avec le patch de l'app Papillon et un correctif pour les actualités des Pronote récents.
 - La logique Pronote (`src/lib/pronote/`), le calcul des moyennes et les données de démo sont adaptés de l'app [PapillonApp/Papillon](https://github.com/PapillonApp/Papillon), sous licence **GPL-3.0** (voir `LICENSE-GPL-3.0`). Ces adaptations restent sous la même licence.
 - Ce projet n'est ni affilié à l'association Papillon ni à Index Éducation (Pronote).

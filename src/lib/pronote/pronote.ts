@@ -43,7 +43,7 @@ import {
   TabLocation,
   timetableFromIntervals,
   type Attachment,
-} from "@blockshub/pawnote-lts";
+} from "./vendor/pawnote";
 import { subjectAverage } from "./average";
 import { pronoteFetcher } from "./fetcher";
 import type { SchoolService } from "./service";

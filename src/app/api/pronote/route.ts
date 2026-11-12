@@ -13,7 +13,7 @@ import {
   SessionExpiredError,
   SuspendedIPError,
   UnreachableError,
-} from "@blockshub/pawnote-lts";
+} from "@/lib/pronote/vendor/pawnote";
 import { createDecipheriv, createHash } from "node:crypto";
 import { type NextRequest, NextResponse } from "next/server";
 import { DemoService } from "@/lib/pronote/demo";
