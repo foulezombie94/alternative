@@ -1,0 +1,35 @@
+import type { Dictionary } from "@/i18n/dictionaries/fr";
+import { withBasePath } from "@/lib/base-path";
+
+type Columns = Dictionary["footer"]["columns"];
+export type LinkKey = { [Column in keyof Columns]: keyof Columns[Column]["links"] }[keyof Columns];
+
+export const discordUrl = "https://discord.gg/wVKWBRTbfh";
+export const contactEmail = "support@papillon.bzh";
+export const linkedinUrl = "https://www.linkedin.com/company/getpapillonapp";
+
+export const linkHrefs: Record<LinkKey, string> = {
+  grades: "/grades",
+  schedule: "/schedule",
+  homework: "/homework",
+  news: "/news",
+  team: "/association",
+  story: "/story",
+  blog: "/blog",
+  donate: "https://ko-fi.com/thepapillonapp",
+  privacy: "https://docs.papillon.bzh/privacy-policy",
+  docs: "https://docs.papillon.bzh",
+  github: "https://github.com/PapillonApp",
+  x: "https://x.com/thepapillonapp",
+  instagram: "https://instagram.com/thepapillonapp",
+  tiktok: "https://tiktok.com/@thepapillonapp",
+  youtube: "https://youtube.com/@thepapillonapp",
+  linkedin: linkedinUrl,
+  discord: discordUrl,
+};
+
+export function localizeHref(href: string, locale: string) {
+  return href.startsWith("/") ? withBasePath(`/${locale}${href}`) : href;
+}
+
+export const externalProps = { target: "_blank", rel: "noreferrer" } as const;
