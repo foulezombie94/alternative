@@ -171,6 +171,8 @@ export type ErrorCode =
   | "rate_limited"
   | "security"
   | "invalid_qr"
+  | "invalid_pin"
+  | "server"
   | "ent_required"
   | "unsupported"
   | "unknown";

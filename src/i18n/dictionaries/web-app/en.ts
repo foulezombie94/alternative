@@ -64,9 +64,12 @@ const webAppEn: WebAppDictionary = {
     rate_limited: "Too many requests sent to Pronote. Please wait a bit.",
     security: "Pronote requires a security step that is not supported here (password change or two-factor setup). Complete it on the Pronote website first.",
     invalid_qr: "Invalid or expired QR code. Generate a new one on Pronote.",
+    invalid_pin: "The 4-digit code does not match this QR code. Check the code you chose on Pronote.",
+    server: "Pronote refused the request.",
     ent_required: "This school requires an ENT sign-in: use the QR code.",
     unsupported: "This action is not available for your account.",
     unknown: "An unexpected error occurred.",
+    detail: "Details",
     retry: "Try again",
   },
   common: {

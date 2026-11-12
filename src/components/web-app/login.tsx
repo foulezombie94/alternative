@@ -60,6 +60,7 @@ export function WebAppLogin({ t, locale }: { t: WebAppDictionary; locale: Locale
   const [tab, setTab] = useState<Tab>("credentials");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ErrorCode | null>(null);
+  const [detail, setDetail] = useState<string | null>(null);
   const [needsPin, setNeedsPin] = useState(false);
 
   const [url, setUrl] = useState("");
@@ -81,9 +82,16 @@ export function WebAppLogin({ t, locale }: { t: WebAppDictionary; locale: Locale
 
   const home = `/${locale}/app` as Route;
 
+  function fail(failure: unknown) {
+    const known = failure instanceof ApiFailure;
+    setError(known ? failure.code : "unknown");
+    setDetail(known && failure.message !== failure.code ? failure.message : null);
+  }
+
   async function submit(action: () => Promise<LoginResult>) {
     setBusy(true);
     setError(null);
+    setDetail(null);
     try {
       const result = await action();
       if (result.status === "pin") {
@@ -92,7 +100,7 @@ export function WebAppLogin({ t, locale }: { t: WebAppDictionary; locale: Locale
         router.replace(home);
       }
     } catch (failure) {
-      setError(failure instanceof ApiFailure ? failure.code : "unknown");
+      fail(failure);
     } finally {
       setBusy(false);
     }
@@ -122,7 +130,7 @@ export function WebAppLogin({ t, locale }: { t: WebAppDictionary; locale: Locale
         try {
           setSchools(await call<SchoolDTO[]>("geolocate", { latitude: coords.latitude, longitude: coords.longitude }));
         } catch (failure) {
-          setError(failure instanceof ApiFailure ? failure.code : "unknown");
+          fail(failure);
         } finally {
           setLocating(false);
         }
@@ -141,7 +149,7 @@ export function WebAppLogin({ t, locale }: { t: WebAppDictionary; locale: Locale
     try {
       setInstance(await call<InstanceDTO>("instance", { url }));
     } catch (failure) {
-      setError(failure instanceof ApiFailure ? failure.code : "unknown");
+      fail(failure);
     }
   }
 
@@ -226,7 +234,12 @@ export function WebAppLogin({ t, locale }: { t: WebAppDictionary; locale: Locale
 
           {error && (
             <p role="alert" className="mb-5 rounded-2xl bg-feature-schedule/10 px-4 py-3 text-feature-schedule">
-              {t.errors[error]}
+              {t.errors[error] ?? t.errors.unknown}
+              {detail && (
+                <span className="mt-1 block text-sm opacity-70">
+                  {t.errors.detail} : {detail}
+                </span>
+              )}
             </p>
           )}
 

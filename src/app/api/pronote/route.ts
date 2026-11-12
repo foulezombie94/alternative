@@ -9,10 +9,12 @@ import {
   PageUnavailableError,
   RateLimitedError,
   SecurityError,
+  ServerSideError,
   SessionExpiredError,
   SuspendedIPError,
   UnreachableError,
 } from "@blockshub/pawnote-lts";
+import { createDecipheriv, createHash } from "node:crypto";
 import { type NextRequest, NextResponse } from "next/server";
 import { DemoService } from "@/lib/pronote/demo";
 import { pronoteFetcher } from "@/lib/pronote/fetcher";
@@ -68,6 +70,19 @@ function failure(code: ErrorCode, status: number, error: string = code) {
   return NextResponse.json<ApiError>({ error, code }, { status });
 }
 
+function qrPinMatches(qr: { jeton: string; login: string }, pin: string) {
+  const key = createHash("md5").update(pin, "utf8").digest();
+  try {
+    for (const value of [qr.jeton, qr.login]) {
+      const decipher = createDecipheriv("aes-128-cbc", key, Buffer.alloc(16));
+      Buffer.concat([decipher.update(Buffer.from(value, "hex")), decipher.final()]);
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 function classify(error: unknown) {
   if (error instanceof InputError) return failure("unknown", 400, `invalid ${error.message}`);
   if (error instanceof BadCredentialsError) return failure("bad_credentials", 401);
@@ -75,6 +90,7 @@ function classify(error: unknown) {
   if (error instanceof SuspendedIPError) return failure("suspended", 429);
   if (error instanceof RateLimitedError) return failure("rate_limited", 429);
   if (error instanceof SecurityError) return failure("security", 403);
+  if (error instanceof ServerSideError) return failure("server", 502, error.message);
   if (error instanceof NotSupportedError) {
     return failure(error.message === "security" ? "security" : "unsupported", 422, error.message);
   }
@@ -219,7 +235,14 @@ export async function POST(request: NextRequest) {
           return failure("invalid_qr", 400);
         }
         const pin = text(body, "pin", 10);
-        const outcome = await loginWithQrCode({ qr: parsed, pin });
+        if (!/^\d{4}$/.test(pin) || !qrPinMatches(parsed, pin)) return failure("invalid_pin", 400);
+        let outcome: LoginOutcome;
+        try {
+          outcome = await loginWithQrCode({ qr: parsed, pin });
+        } catch (error) {
+          if (error instanceof BadCredentialsError) return failure("invalid_qr", 401);
+          throw error;
+        }
         removeService(currentId);
         return settle(outcome, newSessionId());
       }

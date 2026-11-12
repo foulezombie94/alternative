@@ -62,9 +62,12 @@ const webAppFr = {
     rate_limited: "Trop de requêtes envoyées à Pronote. Patiente un peu.",
     security: "Pronote demande une étape de sécurité non prise en charge ici (changement de mot de passe ou choix de double authentification). Fais-la d’abord sur le site Pronote.",
     invalid_qr: "QR code invalide ou expiré. Génères-en un nouveau sur Pronote.",
+    invalid_pin: "Le code à 4 chiffres ne correspond pas à ce QR code. Vérifie le code choisi sur Pronote.",
+    server: "Pronote a refusé la demande.",
     ent_required: "Cet établissement nécessite une connexion par ENT : utilise le QR code.",
     unsupported: "Cette action n’est pas disponible pour ton compte.",
     unknown: "Une erreur inattendue est survenue.",
+    detail: "Détail",
     retry: "Réessayer",
   },
   common: {
