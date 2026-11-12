@@ -527,14 +527,14 @@ export class PronoteService implements SchoolService {
           return {
             id: item.id,
             title: item.title ?? "",
-            author: item.author,
-            category: item.category.name,
-            date: iso(item.creationDate),
-            content: item.content,
-            read: item.read,
-            needsAcknowledgement: item.needToAcknowledge,
-            acknowledged: item.acknowledged,
-            attachments: item.attachments.map(attachment),
+            author: item.author ?? "",
+            category: item.category?.name ?? "",
+            date: iso(item.creationDate ?? new Date()),
+            content: item.content ?? "",
+            read: Boolean(item.read),
+            needsAcknowledgement: Boolean(item.needToAcknowledge),
+            acknowledged: Boolean(item.acknowledged),
+            attachments: (item.attachments ?? []).map(attachment),
           };
         })
         .sort((a, b) => b.date.localeCompare(a.date));

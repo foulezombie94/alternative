@@ -47,7 +47,7 @@ export function WebAppNews() {
                         <span className="truncate font-semibold">{item.title}</span>
                       </span>
                       <span className="block truncate text-sm text-foreground/50">
-                        {item.category} · {formatShortDate(item.date, locale)}
+                        {[item.category, formatShortDate(item.date, locale)].filter(Boolean).join(" · ")}
                       </span>
                     </button>
                   </li>
@@ -56,7 +56,7 @@ export function WebAppNews() {
               <article className="rounded-3xl bg-surface p-6 lg:col-span-3">
                 {selected ? (
                   <>
-                    <p className="mb-1 text-sm font-medium text-primary">{selected.category}</p>
+                    {selected.category && <p className="mb-1 text-sm font-medium text-primary">{selected.category}</p>}
                     <h2 className="mb-1 text-2xl font-semibold">{selected.title}</h2>
                     <p className="mb-5 text-sm text-foreground/50">
                       {capitalize(formatDay(selected.date, locale, true))} · {t.news.by} {selected.author}
