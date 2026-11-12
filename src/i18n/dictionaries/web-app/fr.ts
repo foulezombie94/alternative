@@ -154,6 +154,9 @@ const webAppFr = {
     unread: "Non lu",
     acknowledge: "J’ai pris connaissance",
     acknowledged: "Lu et confirmé",
+    emptyContent: "Le contenu n’a pas pu être lu.",
+    diagnostic: "Afficher le diagnostic",
+    diagnosticHint: "Copie ce texte et envoie-le pour corriger le problème.",
     select: "Choisis une actualité pour la lire.",
   },
   messages: {

@@ -4,6 +4,8 @@ import { Check } from "@getpapillon/papicons";
 import { useState } from "react";
 import type { NewsDTO } from "@/lib/pronote/types";
 import { call, useApi } from "./api";
+
+type Debug = { patched: boolean; raw: string | null };
 import { useWebApp } from "./context";
 import { capitalize, formatDay, formatShortDate } from "./format";
 import { Async, Attachments, Empty, Html, PageHeader } from "./ui";
@@ -13,6 +15,11 @@ export function WebAppNews() {
   const state = useApi<NewsDTO[]>("news");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [debug, setDebug] = useState<{ id: string; data: Debug } | null>(null);
+
+  async function loadDebug(id: string) {
+    setDebug({ id, data: await call<Debug>("newsDebug", { id }) });
+  }
 
   async function acknowledge(item: NewsDTO, list: NewsDTO[]) {
     setSaving(true);
@@ -61,7 +68,31 @@ export function WebAppNews() {
                     <p className="mb-5 text-sm text-foreground/50">
                       {capitalize(formatDay(selected.date, locale, true))} · {t.news.by} {selected.author}
                     </p>
-                    <Html html={selected.content} className="text-foreground/80" />
+                    {selected.content.trim() ? (
+                      <Html html={selected.content} className="text-foreground/80" />
+                    ) : (
+                      <div className="rounded-2xl bg-background p-4 text-sm">
+                        <p className="mb-2 text-foreground/60">{t.news.emptyContent}</p>
+                        {debug?.id === selected.id ? (
+                          <>
+                            <p className="mb-2 text-foreground/60">
+                              {t.news.diagnosticHint} (patch: {String(debug.data.patched)})
+                            </p>
+                            <pre className="max-h-96 overflow-auto rounded-xl bg-surface p-3 text-xs whitespace-pre-wrap select-all">
+                              {debug.data.raw ?? "null"}
+                            </pre>
+                          </>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => loadDebug(selected.id)}
+                            className="rounded-full bg-surface px-4 py-2 font-medium transition-colors hover:bg-foreground/10"
+                          >
+                            {t.news.diagnostic}
+                          </button>
+                        )}
+                      </div>
+                    )}
                     <Attachments files={selected.attachments} />
                     {selected.needsAcknowledgement &&
                       (selected.acknowledged ? (

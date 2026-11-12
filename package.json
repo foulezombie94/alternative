@@ -49,6 +49,6 @@
     "unrs-resolver"
   ],
   "patchedDependencies": {
-    "@blockshub/pawnote-lts@1.6.4": "patches/@blockshub%2Fpawnote-lts@1.6.4.patch"
+    "@blockshub/pawnote-lts@1.6.4": "patches/pawnote-lts-1.6.4-v2.patch"
   }
 }

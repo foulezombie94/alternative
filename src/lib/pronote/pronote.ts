@@ -262,6 +262,7 @@ export class PronoteService implements SchoolService {
   private relogin: Promise<void> | null = null;
   private discussionCache = new Map<string, Discussion>();
   private newsCache = new Map<string, NewsInformation>();
+  private rawNews = new Map<string, unknown>();
   private recipientCache = new Map<string, NewDiscussionRecipient>();
 
   constructor(
@@ -549,6 +550,7 @@ export class PronoteService implements SchoolService {
       return feed.items
         .map((item) => {
           const information = item.is === "information" ? item : null;
+          this.rawNews.set(item.id, (item as unknown as { _raw?: unknown })._raw);
           if (information) this.newsCache.set(item.id, information);
           return {
             id: item.id,
@@ -568,6 +570,15 @@ export class PronoteService implements SchoolService {
         })
         .sort((a, b) => b.date.localeCompare(a.date));
     });
+  }
+
+  async newsDebug(id: string) {
+    if (!this.rawNews.has(id)) await this.news();
+    const raw = this.rawNews.get(id);
+    return {
+      patched: raw !== undefined,
+      raw: raw === undefined ? null : JSON.stringify(raw, null, 2).slice(0, 20000),
+    };
   }
 
   async acknowledgeNews(id: string) {

@@ -175,6 +175,9 @@ async function runAction(service: SchoolService, action: string, body: Body): Pr
       return service.attendance(text(body, "periodId"));
     case "news":
       return service.news();
+    case "newsDebug":
+      if (!(service instanceof PronoteService)) return { patched: true, raw: null };
+      return service.newsDebug(text(body, "id"));
     case "acknowledgeNews":
       await service.acknowledgeNews(text(body, "id"));
       return { ok: true };

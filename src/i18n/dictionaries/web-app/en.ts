@@ -156,6 +156,9 @@ const webAppEn: WebAppDictionary = {
     unread: "Unread",
     acknowledge: "I have read this",
     acknowledged: "Read and confirmed",
+    emptyContent: "The content could not be read.",
+    diagnostic: "Show diagnostics",
+    diagnosticHint: "Copy this text and send it so the problem can be fixed.",
     select: "Pick a news item to read it.",
   },
   messages: {
