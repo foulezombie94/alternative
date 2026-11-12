@@ -138,11 +138,18 @@ function settle(outcome: LoginOutcome, id: string) {
 
 function restore(session: SessionPayload | undefined) {
   if (!session) return Promise.resolve(undefined);
-  return getService(session.id, () => {
-    if (session.kind === "demo") return Promise.resolve(new DemoService());
-    if (session.kind === "pronote") return restorePronote(session.credentials);
-    return undefined;
-  });
+  return getService(
+    session.id,
+    () => {
+      if (session.kind === "demo") return Promise.resolve(new DemoService());
+      if (session.kind === "pronote") return restorePronote(session.credentials);
+      return undefined;
+    },
+    (service) =>
+      session.kind !== "pronote" ||
+      !(service instanceof PronoteService) ||
+      service.credentials().refresh.token === session.credentials.refresh.token,
+  );
 }
 
 async function runAction(service: SchoolService, action: string, body: Body): Promise<unknown> {
@@ -283,6 +290,7 @@ export async function POST(request: NextRequest) {
     try {
       service = await restore(session);
     } catch (error) {
+      console.error("[papillon-web] restore", error);
       removeService(currentId);
       const response = error instanceof BadCredentialsError ? failure("session_expired", 401) : classify(error);
       if (error instanceof BadCredentialsError) response.cookies.delete(sessionCookie);

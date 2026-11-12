@@ -68,6 +68,11 @@ export function ErrorBox({ error, retry }: { error: ApiFailure; retry?: () => vo
     <div className="flex flex-col items-center gap-3 py-12 text-center">
       <AlertCircle className="size-7 text-feature-schedule" />
       <p className="max-w-md text-foreground/70">{t.errors[error.code] ?? t.errors.unknown}</p>
+      {error.message && error.message !== error.code && (
+        <p className="max-w-md text-sm text-foreground/40">
+          {t.errors.detail} : {error.message}
+        </p>
+      )}
       {retry && !lost && (
         <button
           type="button"

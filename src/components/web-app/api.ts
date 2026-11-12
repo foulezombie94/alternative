@@ -14,7 +14,15 @@ export class ApiFailure extends Error {
 
 export const sessionLostCodes: ErrorCode[] = ["not_logged_in", "session_expired"];
 
-export async function call<T>(action: string, params: Record<string, unknown> = {}): Promise<T> {
+let queue: Promise<unknown> = Promise.resolve();
+
+export function call<T>(action: string, params: Record<string, unknown> = {}): Promise<T> {
+  const next = queue.then(() => send<T>(action, params));
+  queue = next.catch(() => undefined);
+  return next;
+}
+
+async function send<T>(action: string, params: Record<string, unknown>): Promise<T> {
   let response: Response;
   try {
     response = await fetch("/api/pronote", {

@@ -79,12 +79,17 @@ export function saveService(id: string, service: SchoolService) {
 export async function getService(
   id: string | undefined,
   restore: () => Promise<SchoolService> | undefined,
+  isCurrent: (service: SchoolService) => boolean = () => true,
 ): Promise<SchoolService | undefined> {
   if (!id) return undefined;
   const entry = store.services.get(id);
-  if (entry) {
+  if (entry && isCurrent(entry.value)) {
     entry.lastUsed = Date.now();
     return entry.value;
+  }
+  if (entry) {
+    entry.value.logout();
+    store.services.delete(id);
   }
 
   let pending = store.restoring.get(id);
