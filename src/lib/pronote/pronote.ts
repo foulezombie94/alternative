@@ -91,6 +91,21 @@ export type LoginOutcome =
 
 export type CredentialsInput = { url: string; username: string; password: string; parent: boolean };
 
+export type PronoteCredentials = { refresh: RefreshInformation; deviceUUID: string };
+
+export async function restorePronote({ refresh, deviceUUID }: PronoteCredentials): Promise<PronoteService> {
+  const handle = createSessionHandle(pronoteFetcher);
+  const next = await loginToken(handle, {
+    url: refresh.url,
+    kind: refresh.kind,
+    username: refresh.username,
+    token: refresh.token,
+    navigatorIdentifier: refresh.navigatorIdentifier,
+    deviceUUID,
+  });
+  return new PronoteService(handle, next, deviceUUID);
+}
+
 export type QrInput = { qr: { jeton: string; login: string; url: string }; pin: string };
 
 export async function loginWithCredentials(input: CredentialsInput): Promise<LoginOutcome> {
@@ -233,6 +248,11 @@ export class PronoteService implements SchoolService {
 
   logout() {
     clearPresenceInterval(this.handle);
+  }
+
+  credentials(): PronoteCredentials {
+    const { url, token, username, kind, navigatorIdentifier } = this.refresh;
+    return { refresh: { url, token, username, kind, navigatorIdentifier }, deviceUUID: this.deviceUUID };
   }
 
   private async renew() {

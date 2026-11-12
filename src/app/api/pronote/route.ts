@@ -16,15 +16,26 @@ import {
 import { type NextRequest, NextResponse } from "next/server";
 import { DemoService } from "@/lib/pronote/demo";
 import { pronoteFetcher } from "@/lib/pronote/fetcher";
-import { loginWithCredentials, loginWithQrCode, type LoginOutcome, NotSupportedError, solveChallenge } from "@/lib/pronote/pronote";
+import {
+  loginWithCredentials,
+  loginWithQrCode,
+  type LoginOutcome,
+  NotSupportedError,
+  PronoteService,
+  restorePronote,
+  solveChallenge,
+} from "@/lib/pronote/pronote";
 import type { SchoolService } from "@/lib/pronote/service";
 import {
   getService,
   newSessionId,
+  openSession,
   removeService,
   saveChallenge,
   saveService,
+  sealSession,
   sessionCookie,
+  type SessionPayload,
   takeChallenge,
 } from "@/lib/pronote/store";
 import type { ApiError, ErrorCode } from "@/lib/pronote/types";
@@ -85,23 +96,37 @@ function classify(error: unknown) {
   return failure("unknown", 500, error instanceof Error ? error.message : String(error));
 }
 
-function withCookie(response: NextResponse, id: string) {
-  response.cookies.set(sessionCookie, id, {
+function withCookie(response: NextResponse, payload: SessionPayload) {
+  response.cookies.set(sessionCookie, sealSession(payload), {
     httpOnly: true,
     sameSite: "strict",
+    secure: process.env.NODE_ENV === "production",
     path: "/",
-    maxAge: 60 * 60 * 3,
+    maxAge: 60 * 60 * 24 * 7,
   });
   return response;
+}
+
+function pronotePayload(id: string, service: PronoteService): SessionPayload {
+  return { id, kind: "pronote", credentials: service.credentials() };
 }
 
 function settle(outcome: LoginOutcome, id: string) {
   if (outcome.status === "pin") {
     saveChallenge(id, outcome.challenge);
-    return withCookie(NextResponse.json({ status: "pin" }), id);
+    return withCookie(NextResponse.json({ status: "pin" }), { id, kind: "challenge" });
   }
   saveService(id, outcome.service);
-  return withCookie(NextResponse.json({ status: "ok" }), id);
+  return withCookie(NextResponse.json({ status: "ok" }), pronotePayload(id, outcome.service));
+}
+
+function restore(session: SessionPayload | undefined) {
+  if (!session) return Promise.resolve(undefined);
+  return getService(session.id, () => {
+    if (session.kind === "demo") return Promise.resolve(new DemoService());
+    if (session.kind === "pronote") return restorePronote(session.credentials);
+    return undefined;
+  });
 }
 
 async function runAction(service: SchoolService, action: string, body: Body): Promise<unknown> {
@@ -163,15 +188,16 @@ export async function POST(request: NextRequest) {
   }
 
   const action = typeof body.action === "string" ? body.action : "";
-  const currentId = request.cookies.get(sessionCookie)?.value;
+  const session = openSession(request.cookies.get(sessionCookie)?.value);
+  const currentId = session?.id;
 
   try {
     switch (action) {
       case "loginDemo": {
         const id = newSessionId();
-        saveService(id, new DemoService());
         removeService(currentId);
-        return withCookie(NextResponse.json({ status: "ok" }), id);
+        saveService(id, new DemoService());
+        return withCookie(NextResponse.json({ status: "ok" }), { id, kind: "demo" });
       }
       case "loginCredentials": {
         const outcome = await loginWithCredentials({
@@ -202,7 +228,7 @@ export async function POST(request: NextRequest) {
         if (!challenge || !currentId) return failure("not_logged_in", 401);
         const service = await solveChallenge(challenge, text(body, "pin", 10));
         saveService(currentId, service);
-        return NextResponse.json({ status: "ok" });
+        return withCookie(NextResponse.json({ status: "ok" }), pronotePayload(currentId, service));
       }
       case "logout": {
         removeService(currentId);
@@ -230,9 +256,25 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const service = getService(currentId);
-    if (!service) return failure("not_logged_in", 401);
-    return NextResponse.json(await runAction(service, action, body));
+    let service: SchoolService | undefined;
+    try {
+      service = await restore(session);
+    } catch (error) {
+      removeService(currentId);
+      const response = error instanceof BadCredentialsError ? failure("session_expired", 401) : classify(error);
+      if (error instanceof BadCredentialsError) response.cookies.delete(sessionCookie);
+      return response;
+    }
+    if (!service || !session) return failure("not_logged_in", 401);
+
+    const response = NextResponse.json(await runAction(service, action, body));
+    if (service instanceof PronoteService && session.kind === "pronote") {
+      const latest = service.credentials();
+      if (latest.refresh.token !== session.credentials.refresh.token) {
+        withCookie(response, pronotePayload(session.id, service));
+      }
+    }
+    return response;
   } catch (error) {
     return classify(error);
   }

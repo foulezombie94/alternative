@@ -18,6 +18,10 @@ Puis ouvrir :
 
 > ⚠️ À utiliser **uniquement en local**. Le mot de passe Pronote passe par le serveur Next.js qui tourne sur ton ordinateur : ne mets pas ce serveur en ligne.
 
+## Sur Vercel
+
+La session est gardée dans un cookie chiffré, ce qui permet de marcher sur Vercel. Dans Vercel → Settings → Environment Variables, ajoute `PAPILLON_SESSION_SECRET` avec une longue phrase aléatoire, puis redéploie. `vercel.json` place le serveur à Paris (`cdg1`) pour que Pronote voie une adresse française.
+
 ## Se connecter
 
 - **Identifiants** : adresse Pronote de l'établissement (bouton « Trouver mon établissement » avec la géolocalisation), identifiant et mot de passe. Ne marche pas si le lycée passe par un ENT.
