@@ -26,6 +26,8 @@ import {
   type NewDiscussionRecipient,
   newDiscussionRecipients,
   news,
+  newsDetail,
+  type NewsQuestion,
   type NewsInformation,
   type NewsSurvey,
   newsInformationAcknowledge,
@@ -228,20 +230,6 @@ function clampRange(handle: SessionHandle, from: Date, to: Date): [Date, Date] |
   return start <= end ? [start, end] : null;
 }
 
-const skippedKeys = new Set(["N", "L", "G", "_T", "titre", "auteur", "public", "categorie", "genreReponse"]);
-
-function findText(value: unknown, depth = 0): string {
-  if (depth > 6 || value === null || typeof value !== "object") return "";
-  let best = "";
-  for (const [key, child] of Object.entries(value)) {
-    if (skippedKeys.has(key) || key.startsWith("date")) continue;
-    const found = typeof child === "string" ? child : findText(child, depth + 1);
-    const usable = /<[a-z][^>]*>/i.test(found) || found.trim().split(/\s+/).length >= 6;
-    if (usable && found.trim().length > best.trim().length) best = found;
-  }
-  return best;
-}
-
 function newsContent(item: NewsInformation | NewsSurvey) {
   const content =
     item.is === "information"
@@ -250,8 +238,7 @@ function newsContent(item: NewsInformation | NewsSurvey) {
           .map((question) => question.content)
           .filter(Boolean)
           .join("<br>");
-  if (content?.trim()) return content;
-  return findText((item as unknown as { _raw?: unknown })._raw);
+  return content?.trim() ? content : "";
 }
 
 function splitName(name: string) {
@@ -545,31 +532,68 @@ export class PronoteService implements SchoolService {
     });
   }
 
+  private async loadNews(handle: SessionHandle) {
+    const feed = await news(handle);
+    return feed.items
+      .map((item) => {
+        const information = item.is === "information" ? item : null;
+        if (information) this.newsCache.set(item.id, information);
+        this.rawNews.set(item.id, (item as unknown as { _raw?: unknown })._raw);
+        return {
+          id: item.id,
+          title: item.title ?? "",
+          author: item.author ?? "",
+          category: item.category?.name ?? "",
+          date: iso(item.creationDate ?? new Date()),
+          content: newsContent(item),
+          read: Boolean(item.read),
+          needsAcknowledgement: Boolean(information?.needToAcknowledge),
+          acknowledged: Boolean(information?.acknowledged),
+          attachments: [
+            ...(information?.attachments ?? []),
+            ...(item.is === "survey" ? item.questions.flatMap((question) => question.attachments ?? []) : []),
+          ].map(attachment),
+        };
+      })
+      .sort((a, b) => b.date.localeCompare(a.date));
+  }
+
   news() {
+    return this.run((handle) => this.loadNews(handle));
+  }
+
+  newsDetail(id: string, title: string, date: string) {
     return this.run(async (handle) => {
-      const feed = await news(handle);
-      return feed.items
-        .map((item) => {
-          const information = item.is === "information" ? item : null;
-          this.rawNews.set(item.id, (item as unknown as { _raw?: unknown })._raw);
-          if (information) this.newsCache.set(item.id, information);
-          return {
-            id: item.id,
-            title: item.title ?? "",
-            author: item.author ?? "",
-            category: item.category?.name ?? "",
-            date: iso(item.creationDate ?? new Date()),
-            content: newsContent(item),
-            read: Boolean(item.read),
-            needsAcknowledgement: Boolean(information?.needToAcknowledge),
-            acknowledged: Boolean(information?.acknowledged),
-            attachments: [
-              ...(information?.attachments ?? []),
-              ...(item.is === "survey" ? item.questions.flatMap((question) => question.attachments ?? []) : []),
-            ].map(attachment),
-          };
-        })
-        .sort((a, b) => b.date.localeCompare(a.date));
+      const fetchQuestions = async (refresh: boolean) => {
+        let itemId = id;
+        if (refresh || !this.rawNews.get(itemId)) {
+          const list = await this.loadNews(handle);
+          itemId = (list.find((entry) => entry.id === id) ?? list.find((entry) => entry.title === title && entry.date === date))?.id ?? id;
+        }
+        const raw = this.rawNews.get(itemId);
+        if (!raw) throw new NotSupportedError("news");
+        return { itemId, questions: await newsDetail(handle, raw) };
+      };
+
+      let result: { itemId: string; questions: NewsQuestion[] };
+      try {
+        result = await fetchQuestions(false);
+      } catch (error) {
+        if (error instanceof SessionExpiredError) throw error;
+        result = await fetchQuestions(true);
+      }
+
+      const { itemId, questions } = result;
+      const cached = this.newsCache.get(itemId);
+      if (cached && questions[0]) (cached as unknown as { question: NewsQuestion }).question = questions[0];
+      if (itemId !== id && cached) this.newsCache.set(id, cached);
+
+      return {
+        content: questions.map((question) => question.content).filter((text) => text?.trim()).join("<br>"),
+        attachments: questions.flatMap((question) => question.attachments ?? []).map(attachment),
+        needsAcknowledgement: Boolean(questions[0]?.shouldAnswer),
+        acknowledged: Boolean(questions[0]?.answered),
+      };
     });
   }
 

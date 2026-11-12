@@ -175,6 +175,9 @@ async function runAction(service: SchoolService, action: string, body: Body): Pr
       return service.attendance(text(body, "periodId"));
     case "news":
       return service.news();
+    case "newsDetail":
+      if (!(service instanceof PronoteService)) return null;
+      return service.newsDetail(text(body, "id"), typeof body.title === "string" ? body.title : "", typeof body.date === "string" ? body.date : "");
     case "newsDebug":
       if (!(service instanceof PronoteService)) return { patched: true, raw: null };
       return service.newsDebug(text(body, "id"));

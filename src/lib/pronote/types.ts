@@ -128,6 +128,13 @@ export type NewsDTO = {
   attachments: AttachmentDTO[];
 };
 
+export type NewsDetailDTO = {
+  content: string;
+  attachments: AttachmentDTO[];
+  needsAcknowledgement: boolean;
+  acknowledged: boolean;
+};
+
 export type ChatDTO = {
   id: string;
   subject: string;
