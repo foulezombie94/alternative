@@ -27,6 +27,7 @@ import {
   newDiscussionRecipients,
   news,
   type NewsInformation,
+  type NewsSurvey,
   newsInformationAcknowledge,
   notebook,
   NotebookObservationKind,
@@ -225,6 +226,31 @@ function clampRange(handle: SessionHandle, from: Date, to: Date): [Date, Date] |
   const start = new Date(Math.max(from.getTime(), handle.instance.firstDate.getTime()));
   const end = new Date(Math.min(to.getTime(), handle.instance.lastDate.getTime()));
   return start <= end ? [start, end] : null;
+}
+
+const skippedKeys = new Set(["N", "L", "G", "_T", "titre", "auteur", "public", "categorie", "genreReponse"]);
+
+function findText(value: unknown, depth = 0): string {
+  if (depth > 6 || value === null || typeof value !== "object") return "";
+  let best = "";
+  for (const [key, child] of Object.entries(value)) {
+    if (skippedKeys.has(key) || key.startsWith("date")) continue;
+    const found = typeof child === "string" ? child : findText(child, depth + 1);
+    if (found.trim().length > best.trim().length) best = found;
+  }
+  return best;
+}
+
+function newsContent(item: NewsInformation | NewsSurvey) {
+  const content =
+    item.is === "information"
+      ? item.content
+      : item.questions
+          .map((question) => question.content)
+          .filter(Boolean)
+          .join("<br>");
+  if (content?.trim()) return content;
+  return findText((item as unknown as { _raw?: unknown })._raw);
 }
 
 function splitName(name: string) {
@@ -521,20 +547,23 @@ export class PronoteService implements SchoolService {
     return this.run(async (handle) => {
       const feed = await news(handle);
       return feed.items
-        .filter((item): item is NewsInformation => item.is === "information")
         .map((item) => {
-          this.newsCache.set(item.id, item);
+          const information = item.is === "information" ? item : null;
+          if (information) this.newsCache.set(item.id, information);
           return {
             id: item.id,
             title: item.title ?? "",
             author: item.author ?? "",
             category: item.category?.name ?? "",
             date: iso(item.creationDate ?? new Date()),
-            content: item.content ?? "",
+            content: newsContent(item),
             read: Boolean(item.read),
-            needsAcknowledgement: Boolean(item.needToAcknowledge),
-            acknowledged: Boolean(item.acknowledged),
-            attachments: (item.attachments ?? []).map(attachment),
+            needsAcknowledgement: Boolean(information?.needToAcknowledge),
+            acknowledged: Boolean(information?.acknowledged),
+            attachments: [
+              ...(information?.attachments ?? []),
+              ...(item.is === "survey" ? item.questions.flatMap((question) => question.attachments ?? []) : []),
+            ].map(attachment),
           };
         })
         .sort((a, b) => b.date.localeCompare(a.date));
