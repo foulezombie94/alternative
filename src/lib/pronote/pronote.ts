@@ -236,7 +236,8 @@ function findText(value: unknown, depth = 0): string {
   for (const [key, child] of Object.entries(value)) {
     if (skippedKeys.has(key) || key.startsWith("date")) continue;
     const found = typeof child === "string" ? child : findText(child, depth + 1);
-    if (found.trim().length > best.trim().length) best = found;
+    const usable = /<[a-z][^>]*>/i.test(found) || found.trim().split(/\s+/).length >= 6;
+    if (usable && found.trim().length > best.trim().length) best = found;
   }
   return best;
 }

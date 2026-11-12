@@ -71,27 +71,7 @@ export function WebAppNews() {
                     {selected.content.trim() ? (
                       <Html html={selected.content} className="text-foreground/80" />
                     ) : (
-                      <div className="rounded-2xl bg-background p-4 text-sm">
-                        <p className="mb-2 text-foreground/60">{t.news.emptyContent}</p>
-                        {debug?.id === selected.id ? (
-                          <>
-                            <p className="mb-2 text-foreground/60">
-                              {t.news.diagnosticHint} (patch: {String(debug.data.patched)})
-                            </p>
-                            <pre className="max-h-96 overflow-auto rounded-xl bg-surface p-3 text-xs whitespace-pre-wrap select-all">
-                              {debug.data.raw ?? "null"}
-                            </pre>
-                          </>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => loadDebug(selected.id)}
-                            className="rounded-full bg-surface px-4 py-2 font-medium transition-colors hover:bg-foreground/10"
-                          >
-                            {t.news.diagnostic}
-                          </button>
-                        )}
-                      </div>
+                      <p className="text-sm text-foreground/60">{t.news.emptyContent}</p>
                     )}
                     <Attachments files={selected.attachments} />
                     {selected.needsAcknowledgement &&
@@ -110,6 +90,26 @@ export function WebAppNews() {
                           {t.news.acknowledge}
                         </button>
                       ))}
+                    <div className="mt-8 border-t border-foreground/5 pt-4 text-sm">
+                      {debug?.id === selected.id ? (
+                        <>
+                          <p className="mb-2 text-foreground/60">
+                            {t.news.diagnosticHint} (patch: {String(debug.data.patched)})
+                          </p>
+                          <pre className="max-h-96 overflow-auto rounded-xl bg-background p-3 text-xs whitespace-pre-wrap select-all">
+                            {debug.data.raw ?? "null"}
+                          </pre>
+                        </>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => loadDebug(selected.id)}
+                          className="text-foreground/40 underline transition-colors hover:text-foreground"
+                        >
+                          {t.news.diagnostic}
+                        </button>
+                      )}
+                    </div>
                   </>
                 ) : (
                   <Empty>{t.news.select}</Empty>
