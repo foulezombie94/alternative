@@ -1,4 +1,5 @@
 import type { Route } from "next";
+import Link from "next/link";
 import { DownloadButton } from "@/components/ui/download-button";
 import { HoverGroup } from "@/components/ui/hover-highlight";
 import { Logo } from "@/components/ui/logo";
@@ -33,6 +34,13 @@ export async function SiteHeader() {
           <div className="max-lg:hidden">
             <LanguageMenu t={dict.language} triggerClassName={navEntryStyle} />
           </div>
+          <Link
+            data-hover-item
+            href={`/${locale}/app` as Route}
+            className={`${navEntryStyle} max-md:hidden`}
+          >
+            {dict.webApp.openWebApp}
+          </Link>
           <DownloadButton t={dict.download} variant="header" compactOnMobile />
           <MobileMenu nav={dict.nav} language={dict.language} download={dict.download} locale={locale} />
         </div>

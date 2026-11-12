@@ -1,0 +1,239 @@
+import {
+  AccessDeniedError,
+  AccountDisabledError,
+  AuthenticateError,
+  BadCredentialsError,
+  BusyPageError,
+  geolocation,
+  instance,
+  PageUnavailableError,
+  RateLimitedError,
+  SecurityError,
+  SessionExpiredError,
+  SuspendedIPError,
+  UnreachableError,
+} from "@blockshub/pawnote-lts";
+import { type NextRequest, NextResponse } from "next/server";
+import { DemoService } from "@/lib/pronote/demo";
+import { pronoteFetcher } from "@/lib/pronote/fetcher";
+import { loginWithCredentials, loginWithQrCode, type LoginOutcome, NotSupportedError, solveChallenge } from "@/lib/pronote/pronote";
+import type { SchoolService } from "@/lib/pronote/service";
+import {
+  getService,
+  newSessionId,
+  removeService,
+  saveChallenge,
+  saveService,
+  sessionCookie,
+  takeChallenge,
+} from "@/lib/pronote/store";
+import type { ApiError, ErrorCode } from "@/lib/pronote/types";
+
+type Body = Record<string, unknown>;
+
+class InputError extends Error {}
+
+const text = (body: Body, key: string, max = 5000) => {
+  const value = body[key];
+  if (typeof value !== "string" || !value.trim() || value.length > max) throw new InputError(key);
+  return value.trim();
+};
+
+const date = (body: Body, key: string) => {
+  const value = new Date(text(body, key, 40));
+  if (Number.isNaN(value.getTime())) throw new InputError(key);
+  return value;
+};
+
+const textList = (body: Body, key: string) => {
+  const value = body[key];
+  if (!Array.isArray(value) || !value.length || value.some((item) => typeof item !== "string")) {
+    throw new InputError(key);
+  }
+  return value as string[];
+};
+
+function failure(code: ErrorCode, status: number, error: string = code) {
+  return NextResponse.json<ApiError>({ error, code }, { status });
+}
+
+function classify(error: unknown) {
+  if (error instanceof InputError) return failure("unknown", 400, `invalid ${error.message}`);
+  if (error instanceof BadCredentialsError) return failure("bad_credentials", 401);
+  if (error instanceof SessionExpiredError) return failure("session_expired", 401);
+  if (error instanceof SuspendedIPError) return failure("suspended", 429);
+  if (error instanceof RateLimitedError) return failure("rate_limited", 429);
+  if (error instanceof SecurityError) return failure("security", 403);
+  if (error instanceof NotSupportedError) {
+    return failure(error.message === "security" ? "security" : "unsupported", 422, error.message);
+  }
+  if (error instanceof AccessDeniedError || error instanceof AccountDisabledError) {
+    return failure("bad_credentials", 403);
+  }
+  if (
+    error instanceof UnreachableError ||
+    error instanceof PageUnavailableError ||
+    error instanceof BusyPageError ||
+    error instanceof AuthenticateError
+  ) {
+    return failure("unreachable", 502, error.message);
+  }
+  if (error instanceof TypeError && /fetch failed|Invalid URL/i.test(error.message)) {
+    return failure("unreachable", 502, error.message);
+  }
+  console.error("[papillon-web]", error);
+  return failure("unknown", 500, error instanceof Error ? error.message : String(error));
+}
+
+function withCookie(response: NextResponse, id: string) {
+  response.cookies.set(sessionCookie, id, {
+    httpOnly: true,
+    sameSite: "strict",
+    path: "/",
+    maxAge: 60 * 60 * 3,
+  });
+  return response;
+}
+
+function settle(outcome: LoginOutcome, id: string) {
+  if (outcome.status === "pin") {
+    saveChallenge(id, outcome.challenge);
+    return withCookie(NextResponse.json({ status: "pin" }), id);
+  }
+  saveService(id, outcome.service);
+  return withCookie(NextResponse.json({ status: "ok" }), id);
+}
+
+async function runAction(service: SchoolService, action: string, body: Body): Promise<unknown> {
+  switch (action) {
+    case "profile":
+      return service.profile();
+    case "timetable":
+      return service.timetable(date(body, "from"), date(body, "to"));
+    case "courseResources":
+      return service.courseResources(text(body, "resourceId"));
+    case "homeworks":
+      return service.homeworks(date(body, "from"), date(body, "to"));
+    case "setHomeworkDone":
+      await service.setHomeworkDone(text(body, "id"), body.done === true);
+      return { ok: true };
+    case "gradePeriods":
+      return service.gradePeriods();
+    case "grades":
+      return service.grades(text(body, "periodId"));
+    case "attendancePeriods":
+      return service.attendancePeriods();
+    case "attendance":
+      return service.attendance(text(body, "periodId"));
+    case "news":
+      return service.news();
+    case "acknowledgeNews":
+      await service.acknowledgeNews(text(body, "id"));
+      return { ok: true };
+    case "chats":
+      return service.chats();
+    case "chatMessages":
+      return service.chatMessages(text(body, "id"));
+    case "sendMessage":
+      await service.sendMessage(text(body, "id"), text(body, "content"));
+      return { ok: true };
+    case "recipients":
+      return service.recipients();
+    case "createChat":
+      await service.createChat(text(body, "subject", 200), text(body, "content"), textList(body, "recipientIds"));
+      return { ok: true };
+    case "canteen":
+      return service.canteen(date(body, "from"));
+    default:
+      throw new InputError("action");
+  }
+}
+
+export async function POST(request: NextRequest) {
+  const origin = request.headers.get("origin");
+  if (origin && new URL(origin).host !== request.headers.get("host")) {
+    return failure("unknown", 403, "origin");
+  }
+
+  let body: Body;
+  try {
+    body = (await request.json()) as Body;
+  } catch {
+    return failure("unknown", 400, "json");
+  }
+
+  const action = typeof body.action === "string" ? body.action : "";
+  const currentId = request.cookies.get(sessionCookie)?.value;
+
+  try {
+    switch (action) {
+      case "loginDemo": {
+        const id = newSessionId();
+        saveService(id, new DemoService());
+        removeService(currentId);
+        return withCookie(NextResponse.json({ status: "ok" }), id);
+      }
+      case "loginCredentials": {
+        const outcome = await loginWithCredentials({
+          url: text(body, "url", 500),
+          username: text(body, "username", 200),
+          password: text(body, "password", 200),
+          parent: body.parent === true,
+        });
+        removeService(currentId);
+        return settle(outcome, newSessionId());
+      }
+      case "loginQr": {
+        const qr = body.qr as Body | undefined;
+        if (!qr || typeof qr !== "object") return failure("invalid_qr", 400);
+        let parsed: { jeton: string; login: string; url: string };
+        try {
+          parsed = { jeton: text(qr, "jeton"), login: text(qr, "login"), url: text(qr, "url", 500) };
+        } catch {
+          return failure("invalid_qr", 400);
+        }
+        const pin = text(body, "pin", 10);
+        const outcome = await loginWithQrCode({ qr: parsed, pin });
+        removeService(currentId);
+        return settle(outcome, newSessionId());
+      }
+      case "solveChallenge": {
+        const challenge = takeChallenge(currentId);
+        if (!challenge || !currentId) return failure("not_logged_in", 401);
+        const service = await solveChallenge(challenge, text(body, "pin", 10));
+        saveService(currentId, service);
+        return NextResponse.json({ status: "ok" });
+      }
+      case "logout": {
+        removeService(currentId);
+        const response = NextResponse.json({ ok: true });
+        response.cookies.delete(sessionCookie);
+        return response;
+      }
+      case "instance": {
+        const info = await instance(text(body, "url", 500), pronoteFetcher);
+        return NextResponse.json({ name: info.name, url: text(body, "url", 500), ent: Boolean(info.casURL) });
+      }
+      case "geolocate": {
+        const latitude = Number(body.latitude);
+        const longitude = Number(body.longitude);
+        if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) throw new InputError("position");
+        const schools = await geolocation({ latitude, longitude }, pronoteFetcher);
+        return NextResponse.json(
+          schools.slice(0, 20).map((school) => ({
+            name: school.name,
+            url: school.url,
+            distance: school.distance,
+            postalCode: school.postalCode,
+          })),
+        );
+      }
+    }
+
+    const service = getService(currentId);
+    if (!service) return failure("not_logged_in", 401);
+    return NextResponse.json(await runAction(service, action, body));
+  } catch (error) {
+    return classify(error);
+  }
+}

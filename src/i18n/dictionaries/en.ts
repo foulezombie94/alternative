@@ -1,6 +1,8 @@
 import type { Dictionary } from "./fr";
+import webApp from "./web-app/en";
 
 const en: Dictionary = {
+  webApp,
   metadata: {
     title: "Papillon: the free, ad-free school life app",
     description:

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { SN_Pro } from "next/font/google";
+import { SiteChrome } from "@/components/layout/site-chrome";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { UiSounds } from "@/components/layout/ui-sounds";
@@ -78,9 +79,13 @@ export default async function RootLayout({ children }: LayoutProps<"/[lang]">) {
             ],
           }}
         />
-        <SiteHeader />
+        <SiteChrome>
+          <SiteHeader />
+        </SiteChrome>
         {children}
-        <SiteFooter />
+        <SiteChrome>
+          <SiteFooter />
+        </SiteChrome>
         <UiSounds />
       </body>
     </html>

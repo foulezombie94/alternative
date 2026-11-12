@@ -1,36 +1,43 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Papillon Web (projet scolaire)
 
-## Getting Started
+Version web de Papillon : le site vitrine papillon.bzh, plus une **app web connectée à Pronote** accessible sur `/fr/app`.
 
-First, run the development server:
+## Lancer le projet
+
+Il faut [bun](https://bun.sh) (`npm install -g bun`).
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
+bun install
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Puis ouvrir :
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- http://localhost:3000/fr : le site vitrine
+- http://localhost:3000/fr/app/login : l'app web (connexion Pronote)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+> ⚠️ À utiliser **uniquement en local**. Le mot de passe Pronote passe par le serveur Next.js qui tourne sur ton ordinateur : ne mets pas ce serveur en ligne.
 
-## Learn More
+## Se connecter
 
-To learn more about Next.js, take a look at the following resources:
+- **Identifiants** : adresse Pronote de l'établissement (bouton « Trouver mon établissement » avec la géolocalisation), identifiant et mot de passe. Ne marche pas si le lycée passe par un ENT.
+- **QR code** (marche aussi avec un ENT) : sur Pronote depuis un ordinateur, clique sur l'icône QR code, choisis un code à 4 chiffres, puis importe une capture du QR code (ou scanne-le avec la webcam) et tape le code.
+- **Démo** : un élève fictif avec de fausses données, sans compte Pronote. Pratique pour l'oral si Pronote ne répond pas.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Fonctionnalités
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Accueil, emploi du temps (avec le contenu des cours), devoirs (cocher « fait »), notes et moyennes, vie scolaire (absences, retards, punitions, observations), actualités (accusé de lecture), messagerie (lire, répondre, nouveau message), menus de la cantine. Français et anglais.
 
-## Deploy on Vercel
+## Organisation du code
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- `src/app/api/pronote/route.ts` : la route serveur appelée par le navigateur. Elle contourne le blocage CORS en parlant à Pronote côté serveur.
+- `src/lib/pronote/` : connexion et récupération des données avec la bibliothèque `@blockshub/pawnote-lts` (`pronote.ts`), mode démo (`demo.ts`), sessions en mémoire (`store.ts`), types (`types.ts`).
+- `src/app/[lang]/app/` : les pages de l'app web.
+- `src/components/web-app/` : l'interface (connexion, accueil, notes…).
+- `src/i18n/dictionaries/web-app/` : tous les textes de l'app web (FR/EN).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## Crédits et licences
+
+- Le site vitrine (pages, textes, images, logo) vient de [PapillonApp/papillon.bzh](https://github.com/PapillonApp/papillon.bzh) : © Association Papillon & contributeur·rice·s, tous droits réservés. Utilisé ici dans un cadre scolaire uniquement.
+- La logique Pronote (`src/lib/pronote/`), le calcul des moyennes et les données de démo sont adaptés de l'app [PapillonApp/Papillon](https://github.com/PapillonApp/Papillon), sous licence **GPL-3.0** (voir `LICENSE-GPL-3.0`). Ces adaptations restent sous la même licence.
+- Ce projet n'est ni affilié à l'association Papillon ni à Index Éducation (Pronote).

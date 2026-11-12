@@ -1,4 +1,7 @@
+import webApp from "./web-app/fr";
+
 const fr = {
+  webApp,
   metadata: {
     title: "Papillon : l’app vie scolaire gratuite et sans pub",
     description:
