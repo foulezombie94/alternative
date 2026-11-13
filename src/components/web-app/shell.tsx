@@ -147,7 +147,7 @@ export function WebAppShell({ t, locale, children }: { t: WebAppDictionary; loca
         </aside>
 
         <main className="min-w-0 flex-1 px-5 pt-4 pb-16 lg:px-10 lg:pt-10">
-          <div className="mx-auto max-w-6xl">{children}</div>
+          <div className={pathname.endsWith("/timetable") ? "w-full" : "mx-auto max-w-6xl"}>{children}</div>
           <button
             type="button"
             onClick={logout}

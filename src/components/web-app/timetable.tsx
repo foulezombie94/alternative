@@ -7,6 +7,12 @@ import { useWebApp } from "./context";
 import { addDays, capitalize, dayKey, endOfDay, formatDay, formatTime, sameDay, startOfWeek } from "./format";
 import { Async, Attachments, Dialog, Empty, Html, isLive, LiveProgress, PageHeader, useNow, WeekNav } from "./ui";
 
+const columnClasses: Record<number, string> = {
+  5: "lg:grid-cols-5",
+  6: "lg:grid-cols-6",
+  7: "lg:grid-cols-7",
+};
+
 function Badge({ course }: { course: CourseDTO }) {
   const { t } = useWebApp();
   const label =
@@ -28,7 +34,7 @@ function Badge({ course }: { course: CourseDTO }) {
       : course.state === CourseState.Test
         ? "bg-feature-news/10 text-feature-news"
         : "bg-feature-homework/10 text-feature-homework";
-  return <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${tone}`}>{label}</span>;
+  return <span className={`inline-block max-w-full rounded-full px-2.5 py-0.5 text-xs font-medium wrap-anywhere ${tone}`}>{label}</span>;
 }
 
 function Resources({ resourceId }: { resourceId: string }) {
@@ -108,12 +114,12 @@ export function WebAppTimetable() {
           if (!courses.length) return <Empty>{t.timetable.noCourses}</Empty>;
 
           return (
-            <div className="grid gap-4 md:grid-cols-3 xl:grid-cols-5">
+            <div className={`grid gap-3 sm:grid-cols-2 md:grid-cols-3 ${columnClasses[days.length] ?? "lg:grid-cols-5"}`}>
               {days.map((day) => {
                 const list = courses.filter((course) => sameDay(new Date(course.from), day));
                 const today = sameDay(day, new Date());
                 return (
-                  <section key={dayKey(day)} className={`rounded-3xl p-3 ${today ? "bg-primary/10" : "bg-surface"}`}>
+                  <section key={dayKey(day)} className={`min-w-0 rounded-3xl p-3 ${today ? "bg-primary/10" : "bg-surface"}`}>
                     <h2 className={`mb-3 px-1 font-semibold ${today ? "text-primary" : ""}`}>
                       {capitalize(formatDay(day, locale))}
                     </h2>
@@ -141,7 +147,7 @@ export function WebAppTimetable() {
                                 <span className="block text-xs font-medium tabular-nums text-foreground/50">
                                   {formatTime(course.from, locale)} – {formatTime(course.to, locale)}
                                 </span>
-                                <span className={`block font-medium ${canceled ? "line-through" : ""}`}>
+                                <span className={`block font-medium wrap-anywhere ${canceled ? "line-through" : ""}`}>
                                   {course.subject}
                                 </span>
                                 <span className="block truncate text-sm text-foreground/50">
