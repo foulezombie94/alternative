@@ -72,7 +72,7 @@ function Courses() {
                       {isLive(course, now) && <LiveProgress from={course.from} to={course.to} now={now} />}
                     </div>
                     {course.statusText && (
-                      <span className="shrink-0 rounded-full bg-feature-homework/10 px-2.5 py-1 text-xs font-medium text-feature-homework">
+                      <span className="max-w-2/5 truncate rounded-full bg-feature-homework/10 px-2.5 py-1 text-xs font-medium text-feature-homework">
                         {course.statusText}
                       </span>
                     )}
@@ -209,7 +209,7 @@ export function WebAppHome() {
           {t.home.greeting} {profile.firstName} 👋
         </h1>
       </div>
-      <div className="grid gap-5 lg:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         {has("timetable") && <Courses />}
         {has("homework") && <Homework />}
         {has("grades") && <Grades />}

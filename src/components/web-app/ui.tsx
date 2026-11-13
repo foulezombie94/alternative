@@ -31,7 +31,7 @@ export function Panel({
   className?: string;
 }) {
   return (
-    <section className={`rounded-3xl bg-surface p-5 ${className}`}>
+    <section className={`min-w-0 rounded-3xl bg-surface p-5 ${className}`}>
       {(title || action) && (
         <div className="mb-4 flex items-center justify-between gap-3">
           {title && <h2 className="text-lg font-semibold">{title}</h2>}

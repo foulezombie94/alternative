@@ -145,7 +145,7 @@ export function WebAppTimetable() {
           if (!courses.length && !weekHolidays.some(Boolean)) return <Empty>{t.timetable.noCourses}</Empty>;
 
           return (
-            <div className={`grid gap-3 sm:grid-cols-2 md:grid-cols-3 ${columnClasses[days.length] ?? "lg:grid-cols-5"}`}>
+            <div className={`grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 ${columnClasses[days.length] ?? "lg:grid-cols-5"}`}>
               {days.map((day, dayIndex) => {
                 const list = courses.filter((course) => sameDay(new Date(course.from), day));
                 const today = sameDay(day, new Date());

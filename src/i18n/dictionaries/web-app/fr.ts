@@ -12,6 +12,8 @@ const webAppFr = {
     news: "Actualités",
     messages: "Messagerie",
     canteen: "Cantine",
+    openMenu: "Ouvrir le menu",
+    closeMenu: "Fermer le menu",
     logout: "Se déconnecter",
     demoBadge: "Mode démo",
     backToSite: "Retour au site",

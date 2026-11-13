@@ -215,7 +215,7 @@ export function WebAppMessages() {
         {(list) => {
           const selected = list.find((chat) => chat.id === selectedId) ?? list[0];
           return (
-            <div className="grid gap-4 lg:grid-cols-5">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
               <ul className="flex flex-col gap-2 lg:col-span-2">
                 {list.map((chat) => (
                   <li key={chat.id}>

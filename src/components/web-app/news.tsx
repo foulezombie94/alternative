@@ -115,7 +115,7 @@ export function WebAppNews() {
             state.update(list.map((entry) => (entry.id === id ? { ...entry, acknowledged: true, read: true } : entry)));
 
           return (
-            <div className="grid gap-4 lg:grid-cols-5">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-5">
               <ul className="flex flex-col gap-2 lg:col-span-2">
                 {list.map((item) => (
                   <li key={item.id}>

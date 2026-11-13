@@ -46,7 +46,7 @@ export function WebAppCanteen() {
         isEmpty={(days) => !days.some((day) => day.lunch || day.dinner)}
       >
         {(days) => (
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
             {days
               .filter((day) => day.lunch || day.dinner)
               .map((day) => {

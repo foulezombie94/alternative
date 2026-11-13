@@ -14,6 +14,8 @@ const webAppEn: WebAppDictionary = {
     news: "News",
     messages: "Messages",
     canteen: "Cafeteria",
+    openMenu: "Open menu",
+    closeMenu: "Close menu",
     logout: "Log out",
     demoBadge: "Demo mode",
     backToSite: "Back to the website",
