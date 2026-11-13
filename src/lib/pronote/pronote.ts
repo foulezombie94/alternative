@@ -568,7 +568,12 @@ export class PronoteService implements SchoolService {
         let itemId = id;
         if (refresh || !this.rawNews.get(itemId)) {
           const list = await this.loadNews(handle);
-          itemId = (list.find((entry) => entry.id === id) ?? list.find((entry) => entry.title === title && entry.date === date))?.id ?? id;
+          itemId =
+            (
+              list.find((entry) => entry.id === id) ??
+              list.find((entry) => entry.title === title && entry.date === date) ??
+              list.find((entry) => entry.title === title)
+            )?.id ?? id;
         }
         const raw = this.rawNews.get(itemId);
         if (!raw) throw new NotSupportedError("news");

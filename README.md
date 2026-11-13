@@ -20,7 +20,7 @@ Puis ouvrir :
 
 ## Sur Vercel
 
-La session est gardée dans un cookie chiffré, ce qui permet de marcher sur Vercel. Dans Vercel → Settings → Environment Variables, ajoute `PAPILLON_SESSION_SECRET` avec une longue phrase aléatoire, puis redéploie. `vercel.json` place le serveur à Paris (`cdg1`) pour que Pronote voie une adresse française.
+La session est gardée dans un cookie chiffré, ce qui permet de marcher sur Vercel. Dans Vercel → Settings → Environment Variables, ajoute `PAPILLON_SESSION_SECRET` avec une longue phrase aléatoire, puis redéploie. Les horaires Pronote sont lus dans le fuseau `Europe/Paris` (variable `PRONOTE_TIMEZONE` pour un autre fuseau, par exemple `Indian/Reunion`). `vercel.json` place le serveur à Paris (`cdg1`) pour que Pronote voie une adresse française.
 
 ## Se connecter
 

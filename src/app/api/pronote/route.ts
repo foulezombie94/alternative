@@ -40,6 +40,7 @@ import {
   type SessionPayload,
   takeChallenge,
 } from "@/lib/pronote/store";
+import { shiftDates, toSchoolClock } from "@/lib/pronote/time";
 import type { ApiError, ErrorCode } from "@/lib/pronote/types";
 
 type Body = Record<string, unknown>;
@@ -55,7 +56,7 @@ const text = (body: Body, key: string, max = 5000) => {
 const date = (body: Body, key: string) => {
   const value = new Date(text(body, key, 40));
   if (Number.isNaN(value.getTime())) throw new InputError(key);
-  return value;
+  return toSchoolClock(value);
 };
 
 const textList = (body: Body, key: string) => {
@@ -304,7 +305,7 @@ export async function POST(request: NextRequest) {
     }
     if (!service || !session) return failure("not_logged_in", 401);
 
-    const response = NextResponse.json(await runAction(service, action, body));
+    const response = NextResponse.json(shiftDates(await runAction(service, action, body)));
     if (service instanceof PronoteService && session.kind === "pronote") {
       const latest = service.credentials();
       if (latest.refresh.token !== session.credentials.refresh.token) {
