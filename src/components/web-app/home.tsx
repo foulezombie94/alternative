@@ -8,7 +8,7 @@ import { CourseState } from "@/lib/pronote/types";
 import { after, useApi } from "./api";
 import { useWebApp } from "./context";
 import { addDays, capitalize, endOfDay, formatDay, formatScore, formatShortDate, formatTime, sameDay } from "./format";
-import { Async, Panel, SubjectDot } from "./ui";
+import { Async, isLive, LiveProgress, Panel, SubjectDot, useNow } from "./ui";
 
 function SeeAll({ path }: { path: string }) {
   const { t, locale } = useWebApp();
@@ -27,12 +27,13 @@ function Courses() {
     return { from: from.toISOString(), to: endOfDay(addDays(from, 14)).toISOString() };
   }, []);
   const state = useApi<CourseDTO[]>("timetable", range);
+  const clock = useNow();
 
   return (
     <Panel title={t.home.nextCourses} action={<SeeAll path="timetable" />}>
       <Async state={state} empty={t.home.noCourses} isEmpty={(courses) => !courses.length}>
         {(courses) => {
-          const now = new Date();
+          const now = clock;
           const today = courses.filter((course) => sameDay(new Date(course.from), now) && new Date(course.to) > now);
           const nextDay = today.length
             ? null
@@ -52,9 +53,10 @@ function Courses() {
                 {list.map((course) => (
                   <li
                     key={course.id}
-                    className={`flex items-center gap-3 rounded-2xl bg-background p-3 ${
+                    aria-current={isLive(course, now) ? "time" : undefined}
+                    className={`flex items-center gap-3 rounded-2xl p-3 ${
                       course.state === CourseState.Canceled ? "opacity-50" : ""
-                    }`}
+                    } ${isLive(course, now) ? "bg-primary/5 ring-2 ring-primary" : "bg-background"}`}
                   >
                     <span className="w-12 text-sm font-medium tabular-nums text-foreground/60">
                       {formatTime(course.from, locale)}
@@ -67,6 +69,7 @@ function Courses() {
                       <p className="truncate text-sm text-foreground/50">
                         {[course.room, course.teacher].filter(Boolean).join(" · ")}
                       </p>
+                      {isLive(course, now) && <LiveProgress from={course.from} to={course.to} now={now} />}
                     </div>
                     {course.statusText && (
                       <span className="shrink-0 rounded-full bg-feature-homework/10 px-2.5 py-1 text-xs font-medium text-feature-homework">

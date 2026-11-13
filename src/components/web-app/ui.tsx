@@ -2,12 +2,13 @@
 
 import { AlertCircle, ChevronLeft, ChevronRight, Paper } from "@getpapillon/papicons";
 import DOMPurify from "dompurify";
-import { type ReactNode, useEffect, useMemo } from "react";
+import { motion, useReducedMotion } from "motion/react";
+import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { Spinner } from "@/components/ui/spinner";
-import type { AttachmentDTO, PeriodDTO } from "@/lib/pronote/types";
+import { type AttachmentDTO, CourseState, type PeriodDTO } from "@/lib/pronote/types";
 import { type ApiFailure, sessionLostCodes } from "./api";
 import { useWebApp } from "./context";
-import { addDays, formatShortDate, startOfWeek } from "./format";
+import { addDays, formatDuration, formatShortDate, startOfWeek } from "./format";
 
 export function PageHeader({ title, children }: { title: string; children?: ReactNode }) {
   return (
@@ -239,5 +240,49 @@ export function Dialog({ title, onClose, children }: { title: string; onClose: (
         {children}
       </div>
     </div>
+  );
+}
+
+export function useNow(interval = 30000) {
+  const [now, setNow] = useState(() => new Date());
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), interval);
+    return () => clearInterval(timer);
+  }, [interval]);
+  return now;
+}
+
+export function isLive(course: { from: string; to: string; state?: CourseState }, now: Date) {
+  return course.state !== CourseState.Canceled && new Date(course.from) <= now && now < new Date(course.to);
+}
+
+export function LiveProgress({ from, to, now }: { from: string; to: string; now: Date }) {
+  const { t } = useWebApp();
+  const reduceMotion = useReducedMotion();
+  const start = new Date(from).getTime();
+  const end = new Date(to).getTime();
+  const progress = Math.min(100, Math.max(0, ((now.getTime() - start) / (end - start)) * 100));
+  const left = Math.max(1, Math.ceil((end - now.getTime()) / 60000));
+
+  return (
+    <span className="mt-2 block">
+      <span className="flex flex-wrap items-center justify-between gap-x-2 text-xs font-semibold whitespace-nowrap text-primary">
+        <span className="flex items-center gap-1.5">
+          <motion.span
+            aria-hidden
+            className="size-2 rounded-full bg-primary"
+            animate={reduceMotion ? undefined : { opacity: [1, 0.3, 1], scale: [1, 1.4, 1] }}
+            transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
+          />
+          {t.timetable.now}
+        </span>
+        <span className="tabular-nums">
+          {t.timetable.endsIn} {formatDuration(left, { hours: t.common.hours, minutes: t.common.minutes })}
+        </span>
+      </span>
+      <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-primary/15">
+        <span className="block h-full rounded-full bg-primary transition-[width] duration-1000" style={{ width: `${progress}%` }} />
+      </span>
+    </span>
   );
 }

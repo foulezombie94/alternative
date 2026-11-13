@@ -5,7 +5,7 @@ import { type CourseDTO, CourseKind, type CourseResourceDTO, CourseState } from 
 import { useApi } from "./api";
 import { useWebApp } from "./context";
 import { addDays, capitalize, dayKey, endOfDay, formatDay, formatTime, sameDay, startOfWeek } from "./format";
-import { Async, Attachments, Dialog, Empty, Html, PageHeader, WeekNav } from "./ui";
+import { Async, Attachments, Dialog, Empty, Html, isLive, LiveProgress, PageHeader, useNow, WeekNav } from "./ui";
 
 function Badge({ course }: { course: CourseDTO }) {
   const { t } = useWebApp();
@@ -88,6 +88,7 @@ export function WebAppTimetable() {
   const { t, locale } = useWebApp();
   const [week, setWeek] = useState(() => startOfWeek(new Date()));
   const [selected, setSelected] = useState<CourseDTO | null>(null);
+  const now = useNow();
   const range = useMemo(
     () => ({ from: week.toISOString(), to: endOfDay(addDays(week, 6)).toISOString() }),
     [week],
@@ -120,14 +121,16 @@ export function WebAppTimetable() {
                     <ul className="flex flex-col gap-2">
                       {list.map((course) => {
                         const canceled = course.state === CourseState.Canceled;
+                        const live = isLive(course, now);
                         return (
                           <li key={course.id}>
                             <button
                               type="button"
                               onClick={() => setSelected(course)}
-                              className={`flex w-full gap-3 rounded-2xl bg-background p-3 text-left transition-shadow hover:shadow-md ${
+                              aria-current={live ? "time" : undefined}
+                              className={`flex w-full gap-3 rounded-2xl p-3 text-left transition-shadow hover:shadow-md ${
                                 canceled ? "opacity-60" : ""
-                              }`}
+                              } ${live ? "bg-primary/5 ring-2 ring-primary" : "bg-background"}`}
                             >
                               <span
                                 aria-hidden
@@ -147,6 +150,7 @@ export function WebAppTimetable() {
                                 <span className="mt-1 block">
                                   <Badge course={course} />
                                 </span>
+                                {live && <LiveProgress from={course.from} to={course.to} now={now} />}
                               </span>
                             </button>
                           </li>

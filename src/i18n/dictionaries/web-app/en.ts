@@ -100,6 +100,8 @@ const webAppEn: WebAppDictionary = {
     average: "Overall average",
   },
   timetable: {
+    now: "Now",
+    endsIn: "Ends in",
     room: "Room",
     teacher: "Teacher",
     group: "Group",

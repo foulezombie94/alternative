@@ -98,6 +98,8 @@ const webAppFr = {
     average: "Moyenne générale",
   },
   timetable: {
+    now: "En cours",
+    endsIn: "Fin dans",
     room: "Salle",
     teacher: "Professeur",
     group: "Groupe",

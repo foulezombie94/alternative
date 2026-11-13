@@ -14,7 +14,7 @@ import {
 } from "@getpapillon/papicons";
 import type { Route } from "next";
 import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { type ReactNode, useCallback, useMemo } from "react";
 import { Logo } from "@/components/ui/logo";
 import type { Locale } from "@/i18n/config";
@@ -38,12 +38,11 @@ const sections: { path: string; key: keyof WebAppDictionary["nav"]; icon: Icon; 
 ];
 
 export function WebAppShell({ t, locale, children }: { t: WebAppDictionary; locale: Locale; children: ReactNode }) {
-  const router = useRouter();
   const pathname = usePathname();
   const profile = useApi<ProfileDTO>("profile");
   const base = `/${locale}/app`;
 
-  const sessionLost = useCallback(() => router.replace(`${base}/login` as Route), [router, base]);
+  const sessionLost = useCallback(() => window.location.replace(`${base}/login`), [base]);
 
   const logout = async () => {
     await call("logout").catch(() => undefined);

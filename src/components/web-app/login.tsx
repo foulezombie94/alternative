@@ -4,7 +4,6 @@ import { Camera, Lock, MapPin, Pronote, QrCode, Sparkles } from "@getpapillon/pa
 import jsQR from "jsqr";
 import type { Route } from "next";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { type FormEvent, type ReactNode, useEffect, useRef, useState } from "react";
 import { Logo } from "@/components/ui/logo";
 import { Spinner } from "@/components/ui/spinner";
@@ -56,7 +55,6 @@ function Field({ label, hint, children }: { label: string; hint?: string; childr
 }
 
 export function WebAppLogin({ t, locale }: { t: WebAppDictionary; locale: Locale }) {
-  const router = useRouter();
   const [tab, setTab] = useState<Tab>("credentials");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<ErrorCode | null>(null);
@@ -97,7 +95,7 @@ export function WebAppLogin({ t, locale }: { t: WebAppDictionary; locale: Locale
       if (result.status === "pin") {
         setNeedsPin(true);
       } else {
-        router.replace(home);
+        window.location.replace(home);
       }
     } catch (failure) {
       fail(failure);
