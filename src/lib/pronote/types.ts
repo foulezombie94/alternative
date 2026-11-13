@@ -55,6 +55,8 @@ export type HomeworkDTO = {
   minutes?: number;
 };
 
+export type HolidayDTO = { name: string; start: string; end: string };
+
 export type PeriodDTO = { id: string; name: string; start: string; end: string };
 
 export type PeriodsDTO = { periods: PeriodDTO[]; defaultId?: string };

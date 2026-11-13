@@ -102,6 +102,8 @@ const webAppEn: WebAppDictionary = {
   timetable: {
     now: "Now",
     endsIn: "Ends in",
+    holiday: "Holiday",
+    vacation: "Vacation",
     room: "Room",
     teacher: "Teacher",
     group: "Group",

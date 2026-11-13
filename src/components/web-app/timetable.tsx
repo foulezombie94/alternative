@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { type CourseDTO, CourseKind, type CourseResourceDTO, CourseState } from "@/lib/pronote/types";
+import { type CourseDTO, CourseKind, type CourseResourceDTO, CourseState, type HolidayDTO } from "@/lib/pronote/types";
 import { useApi } from "./api";
 import { useWebApp } from "./context";
 import { addDays, capitalize, dayKey, endOfDay, formatDay, formatTime, sameDay, startOfWeek } from "./format";
@@ -12,6 +12,35 @@ const columnClasses: Record<number, string> = {
   6: "lg:grid-cols-6",
   7: "lg:grid-cols-7",
 };
+
+function holidayOn(holidays: HolidayDTO[] | undefined, day: Date) {
+  const time = day.getTime();
+  return holidays?.find((holiday) => {
+    const start = new Date(holiday.start);
+    start.setHours(0, 0, 0, 0);
+    return start.getTime() <= time && time <= endOfDay(new Date(holiday.end)).getTime();
+  });
+}
+
+function HolidayPanel({ holiday }: { holiday: HolidayDTO }) {
+  const { t } = useWebApp();
+  const label = /vacances|vacation|holidays/i.test(holiday.name) ? t.timetable.vacation : t.timetable.holiday;
+
+  return (
+    <div
+      className="relative flex min-h-96 flex-1 items-center justify-center overflow-hidden rounded-2xl bg-background"
+      style={{
+        backgroundImage:
+          "repeating-linear-gradient(-45deg, color-mix(in oklab, var(--color-foreground) 5%, transparent) 0 12px, transparent 12px 24px)",
+      }}
+    >
+      <div className="flex -rotate-45 flex-col items-center text-center">
+        <span className="text-5xl font-semibold tracking-tight text-foreground/25 uppercase">{label}</span>
+        <span className="mt-1 max-w-48 text-sm font-medium text-foreground/50">{holiday.name}</span>
+      </div>
+    </div>
+  );
+}
 
 function Badge({ course }: { course: CourseDTO }) {
   const { t } = useWebApp();
@@ -100,6 +129,7 @@ export function WebAppTimetable() {
     [week],
   );
   const state = useApi<CourseDTO[]>("timetable", range);
+  const holidays = useApi<HolidayDTO[]>("holidays");
 
   return (
     <>
@@ -111,20 +141,27 @@ export function WebAppTimetable() {
           const days = Array.from({ length: 7 }, (_, index) => addDays(week, index)).filter(
             (day, index) => index < 5 || courses.some((course) => sameDay(new Date(course.from), day)),
           );
-          if (!courses.length) return <Empty>{t.timetable.noCourses}</Empty>;
+          const weekHolidays = days.map((day) => holidayOn(holidays.data, day));
+          if (!courses.length && !weekHolidays.some(Boolean)) return <Empty>{t.timetable.noCourses}</Empty>;
 
           return (
             <div className={`grid gap-3 sm:grid-cols-2 md:grid-cols-3 ${columnClasses[days.length] ?? "lg:grid-cols-5"}`}>
-              {days.map((day) => {
+              {days.map((day, dayIndex) => {
                 const list = courses.filter((course) => sameDay(new Date(course.from), day));
                 const today = sameDay(day, new Date());
+                const holiday = weekHolidays[dayIndex];
+                const dayOff = holiday && !list.some((course) => course.state !== CourseState.Canceled);
                 return (
-                  <section key={dayKey(day)} className={`min-w-0 rounded-3xl p-3 ${today ? "bg-primary/10" : "bg-surface"}`}>
+                  <section
+                    key={dayKey(day)}
+                    className={`flex min-w-0 flex-col rounded-3xl p-3 ${today ? "bg-primary/10" : "bg-surface"}`}
+                  >
                     <h2 className={`mb-3 px-1 font-semibold ${today ? "text-primary" : ""}`}>
                       {capitalize(formatDay(day, locale))}
                     </h2>
-                    {!list.length && <p className="px-1 pb-2 text-sm text-foreground/40">{t.common.empty}</p>}
-                    <ul className="flex flex-col gap-2">
+                    {dayOff && <HolidayPanel holiday={holiday} />}
+                    {!list.length && !dayOff && <p className="px-1 pb-2 text-sm text-foreground/40">{t.common.empty}</p>}
+                    <ul className={`flex flex-col gap-2 ${dayOff ? "hidden" : ""}`}>
                       {list.map((course) => {
                         const canceled = course.state === CourseState.Canceled;
                         const live = isLive(course, now);

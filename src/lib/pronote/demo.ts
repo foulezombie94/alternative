@@ -114,6 +114,21 @@ function eachMonday(from: Date, to: Date) {
   return mondays;
 }
 
+function demoHolidays() {
+  const year = schoolYear();
+  return [
+    { name: "Armistice", start: new Date(year, 10, 11), end: new Date(year, 10, 11) },
+    { name: "Vacances de Noël", start: new Date(year, 11, 19), end: new Date(year + 1, 0, 3) },
+    { name: "Vacances d'hiver", start: new Date(year + 1, 1, 13), end: new Date(year + 1, 2, 1) },
+    { name: "Lundi de Pâques", start: new Date(year + 1, 2, 29), end: new Date(year + 1, 2, 29) },
+  ];
+}
+
+function isHoliday(day: Date) {
+  const time = at(day, 0).getTime();
+  return demoHolidays().some((holiday) => at(holiday.start, 0).getTime() <= time && time <= at(holiday.end, 0).getTime());
+}
+
 function periods(): PeriodDTO[] {
   const year = schoolYear();
   return [
@@ -147,12 +162,21 @@ export class DemoService implements SchoolService {
     };
   }
 
+  async holidays() {
+    return demoHolidays().map((holiday) => ({
+      name: holiday.name,
+      start: holiday.start.toISOString(),
+      end: holiday.end.toISOString(),
+    }));
+  }
+
   async timetable(from: Date, to: Date) {
     const courses: CourseDTO[] = [];
     for (const start of eachMonday(from, to)) {
       const week = weekIndex(start);
       daySlots.forEach((slots, dayIndex) => {
         const day = addDays(start, dayIndex);
+        if (isHoliday(day)) return;
         slots.forEach((slot, slotIndex) => {
           const lesson = lessons[(dayIndex * 3 + slotIndex * 2 + week) % lessons.length];
           const begin = at(day, ...slot.from);
@@ -200,7 +224,7 @@ export class DemoService implements SchoolService {
       const week = weekIndex(start);
       for (let dayIndex = 0; dayIndex < 5; dayIndex++) {
         const due = at(addDays(start, dayIndex), 8);
-        if (due < from || due > to) continue;
+        if (due < from || due > to || isHoliday(due)) continue;
         const [subject, content] = homeworkContent[(week + dayIndex) % homeworkContent.length];
         const id = `demo-homework-${week}-${dayIndex}`;
         list.push({

@@ -5,6 +5,7 @@ import type {
   CourseDTO,
   CourseResourceDTO,
   GradesDTO,
+  HolidayDTO,
   HomeworkDTO,
   MenuDayDTO,
   NewsDTO,
@@ -16,6 +17,7 @@ import type {
 export interface SchoolService {
   profile(): Promise<ProfileDTO>;
   timetable(from: Date, to: Date): Promise<CourseDTO[]>;
+  holidays(): Promise<HolidayDTO[]>;
   courseResources(resourceId: string): Promise<CourseResourceDTO[]>;
   homeworks(from: Date, to: Date): Promise<HomeworkDTO[]>;
   setHomeworkDone(id: string, done: boolean): Promise<void>;

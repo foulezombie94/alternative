@@ -100,6 +100,8 @@ const webAppFr = {
   timetable: {
     now: "En cours",
     endsIn: "Fin dans",
+    holiday: "Férié",
+    vacation: "Vacances",
     room: "Salle",
     teacher: "Professeur",
     group: "Groupe",

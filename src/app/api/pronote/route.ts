@@ -159,6 +159,8 @@ async function runAction(service: SchoolService, action: string, body: Body): Pr
       return service.profile();
     case "timetable":
       return service.timetable(date(body, "from"), date(body, "to"));
+    case "holidays":
+      return service.holidays();
     case "courseResources":
       return service.courseResources(text(body, "resourceId"));
     case "homeworks":

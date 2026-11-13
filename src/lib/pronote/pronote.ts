@@ -341,6 +341,14 @@ export class PronoteService implements SchoolService {
     };
   }
 
+  async holidays() {
+    return this.handle.instance.holidays.map((holiday) => ({
+      name: holiday.name,
+      start: iso(holiday.startDate),
+      end: iso(holiday.endDate),
+    }));
+  }
+
   timetable(from: Date, to: Date) {
     return this.run(async (handle) => {
       const range = clampRange(handle, from, to);
