@@ -295,9 +295,11 @@ export class DemoService implements SchoolService {
     return this.gradePeriods();
   }
 
-  async attendance(): Promise<AttendanceDTO> {
+  async attendance(periodId: string): Promise<AttendanceDTO> {
     const year = schoolYear();
-    return {
+    const period = periods().find((candidate) => candidate.id === periodId) ?? periods()[0];
+    const inPeriod = (date: string) => period.start <= date && date <= period.end;
+    const all = {
       delays: [3, 0, 4, 1, 2].map((index) => ({
         id: `demo-delay-${index}`,
         date: new Date(year, 8, 10 + index * 13, 8, 5 + index * 3).toISOString(),
@@ -344,6 +346,12 @@ export class DemoService implements SchoolService {
           exclusion: false,
         },
       ],
+    };
+    return {
+      absences: all.absences.filter((absence) => inPeriod(absence.from)),
+      delays: all.delays.filter((delay) => inPeriod(delay.date)),
+      punishments: all.punishments.filter((punishment) => inPeriod(punishment.date)),
+      observations: all.observations.filter((observation) => inPeriod(observation.date)),
     };
   }
 

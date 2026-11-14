@@ -289,18 +289,18 @@ export class PronoteService implements SchoolService {
     if (!tab) return { periods: [] };
     return {
       periods: tab.periods.map((period) => ({
-        id: period.id,
+        id: period.name,
         name: period.name,
         start: iso(period.startDate),
         end: iso(period.endDate),
       })),
-      defaultId: tab.defaultPeriod?.id,
+      defaultId: tab.defaultPeriod?.name,
     };
   }
 
   private period(location: TabLocation, id: string) {
     const tab = this.handle.userResource.tabs.get(location);
-    const period = tab?.periods.find((candidate) => candidate.id === id) ?? tab?.defaultPeriod;
+    const period = tab?.periods.find((candidate) => candidate.name === id || candidate.id === id);
     if (!period) throw new NotSupportedError("period");
     return period;
   }
@@ -513,9 +513,13 @@ export class PronoteService implements SchoolService {
 
   attendance(periodId: string) {
     return this.run(async (handle) => {
-      const book = await notebook(handle, this.period(TabLocation.Notebook, periodId));
+      const period = this.period(TabLocation.Notebook, periodId);
+      const book = await notebook(handle, period);
+      const start = new Date(period.startDate).setHours(0, 0, 0, 0);
+      const end = new Date(period.endDate).setHours(23, 59, 59, 999);
+      const inPeriod = (date: Date) => start <= date.getTime() && date.getTime() <= end;
       return {
-        absences: book.absences.map((absence) => ({
+        absences: book.absences.filter((absence) => inPeriod(absence.startDate)).map((absence) => ({
           id: absence.id,
           from: iso(absence.startDate),
           to: iso(absence.endDate),
@@ -523,14 +527,14 @@ export class PronoteService implements SchoolService {
           justified: absence.justified,
           minutes: absence.hoursMissed * 60 + absence.minutesMissed,
         })),
-        delays: book.delays.map((delay) => ({
+        delays: book.delays.filter((delay) => inPeriod(delay.date)).map((delay) => ({
           id: delay.id,
           date: iso(delay.date),
           reason: delay.reason,
           justified: delay.justified,
           minutes: delay.minutes,
         })),
-        punishments: book.punishments.map((punishment) => ({
+        punishments: book.punishments.filter((punishment) => inPeriod(punishment.dateGiven)).map((punishment) => ({
           id: punishment.id,
           date: iso(punishment.dateGiven),
           nature: punishment.title,
@@ -541,7 +545,7 @@ export class PronoteService implements SchoolService {
           minutes: punishment.durationMinutes,
           exclusion: punishment.exclusion,
         })),
-        observations: book.observations.map((observation) => ({
+        observations: book.observations.filter((observation) => inPeriod(observation.date)).map((observation) => ({
           id: observation.id,
           date: iso(observation.date),
           name: observation.name,
