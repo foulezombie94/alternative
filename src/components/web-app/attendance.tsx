@@ -347,8 +347,13 @@ export function WebAppAttendance() {
                   ).map((delay) => (
                     <Item
                       key={delay.id}
-                      title={`${capitalize(formatDay(delay.date, locale))} ${t.attendance.at} ${formatTime(delay.date, locale)} · ${delay.minutes} ${t.common.minutes}`}
-                      detail={delay.reason}
+                      title={`${capitalize(formatDay(delay.date, locale))} · ${delay.minutes} ${t.common.minutes}`}
+                      detail={[
+                        `${capitalize(t.attendance.at)} ${formatTime(delay.date, locale)}`,
+                        delay.reason,
+                      ]
+                        .filter(Boolean)
+                        .join(" · ")}
                       tag={
                         delay.justified
                           ? t.common.justified
