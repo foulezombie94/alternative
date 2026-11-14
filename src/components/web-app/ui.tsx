@@ -1,13 +1,15 @@
 "use client";
 
-import { AlertCircle, Calendar, ChevronLeft, ChevronRight, Paper } from "@getpapillon/papicons";
+import { AlertCircle, Calendar, ChevronLeft, ChevronRight } from "@getpapillon/papicons";
 import DOMPurify from "dompurify";
 import { motion, useReducedMotion } from "motion/react";
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Spinner } from "@/components/ui/spinner";
-import { type AttachmentDTO, CourseState, type PeriodDTO } from "@/lib/pronote/types";
+import { CourseState, type PeriodDTO } from "@/lib/pronote/types";
 import { type ApiFailure, sessionLostCodes } from "./api";
 import { useWebApp } from "./context";
+
+export { Attachments } from "./attachments";
 import { addDays, formatDuration, formatShortDate, startOfWeek } from "./format";
 
 export function PageHeader({ title, children }: { title: string; children?: ReactNode }) {
@@ -197,30 +199,6 @@ export function Html({ html, className = "" }: { html: string; className?: strin
   );
 }
 
-export function Attachments({ files }: { files: AttachmentDTO[] }) {
-  const { t } = useWebApp();
-  if (!files.length) return null;
-  return (
-    <div className="mt-4">
-      <p className="mb-2 text-sm font-medium text-foreground/50">{t.common.attachments}</p>
-      <ul className="flex flex-wrap gap-2">
-        {files.map((file, index) => (
-          <li key={`${index}-${file.url}`}>
-            <a
-              href={file.url}
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-2 rounded-md bg-background px-3 py-1.5 text-sm font-medium transition-colors hover:bg-foreground/5"
-            >
-              <Paper className="size-4 shrink-0 text-primary" />
-              {file.name}
-            </a>
-          </li>
-        ))}
-      </ul>
-    </div>
-  );
-}
 
 const panelWidth = 288;
 
