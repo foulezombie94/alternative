@@ -467,10 +467,28 @@ export function LiveProgress({ from, to, now }: { from: string; to: string; now:
   );
 }
 
-export function Wordmark({ name, className = "" }: { name: string; className?: string }) {
+export function LogoMark({ className = "" }: { className?: string }) {
   return (
-    <span className={`flex items-center gap-2 font-mono font-medium tracking-tight text-foreground lowercase ${className}`}>
-      <span aria-hidden className="size-2.5 rounded-xs bg-accent" />
+    <svg viewBox="0 0 32 32" aria-hidden className={`shrink-0 ${className}`}>
+      <rect width="32" height="32" rx="9" className="fill-primary" />
+      <circle cx="14" cy="17.5" r="5.5" fill="none" strokeWidth="3.4" className="stroke-background" />
+      <path d="M22.3 10.2v12.6" fill="none" strokeWidth="3.4" strokeLinecap="round" className="stroke-accent" />
+    </svg>
+  );
+}
+
+export function Wordmark({
+  name,
+  className = "",
+  markClassName = "size-7",
+}: {
+  name: string;
+  className?: string;
+  markClassName?: string;
+}) {
+  return (
+    <span className={`flex items-center gap-2 font-semibold tracking-tight text-foreground lowercase ${className}`}>
+      <LogoMark className={markClassName} />
       {name}
     </span>
   );
