@@ -298,19 +298,21 @@ export class DemoService implements SchoolService {
   async attendance(): Promise<AttendanceDTO> {
     const year = schoolYear();
     return {
-      delays: [
-        { id: "demo-delay", date: new Date(year, 9, 7, 8, 12).toISOString(), reason: "Retard du bus", justified: true, minutes: 12 },
-      ],
-      absences: [
-        {
-          id: "demo-absence",
-          from: new Date(year, 10, 18, 8).toISOString(),
-          to: new Date(year, 10, 18, 12).toISOString(),
-          reason: "Rendez-vous médical",
-          justified: true,
-          minutes: 240,
-        },
-      ],
+      delays: [3, 0, 4, 1, 2].map((index) => ({
+        id: `demo-delay-${index}`,
+        date: new Date(year, 8, 10 + index * 13, 8, 5 + index * 3).toISOString(),
+        reason: ["Retard du bus", "Réveil", "Rendez-vous", "Transports", "Panne de métro"][index],
+        justified: index % 2 === 0,
+        minutes: 5 + index * 4,
+      })),
+      absences: [2, 5, 0, 3, 1, 4].map((index) => ({
+        id: `demo-absence-${index}`,
+        from: new Date(year, 8, 8 + index * 11, 8).toISOString(),
+        to: new Date(year, 8, 8 + index * 11, 10 + (index % 3) * 2).toISOString(),
+        reason: ["Rendez-vous médical", "Maladie", "Raison familiale", "Maladie", "Transport", "Compétition sportive"][index],
+        justified: index % 3 !== 1,
+        minutes: 120 + (index % 3) * 120,
+      })),
       observations: [
         {
           id: "demo-observation",
