@@ -13,6 +13,7 @@ const previewCount = 4;
 type Kind = "absences" | "delays" | "punishments" | "observations";
 type Status = "all" | "justified" | "notJustified";
 type Order = "newest" | "oldest";
+type Nature = "all" | "positive" | "negative";
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   const { t } = useWebApp();
@@ -132,6 +133,7 @@ export function WebAppAttendance() {
   const [kind, setKind] = useState<Kind | "all">("all");
   const [status, setStatus] = useState<Status>("all");
   const [order, setOrder] = useState<Order>("newest");
+  const [nature, setNature] = useState<Nature>("all");
   const [filtersOpen, setFiltersOpen] = useState(false);
 
   const active = [
@@ -143,6 +145,13 @@ export function WebAppAttendance() {
       label: t.common[status],
       clear: () => setStatus("all"),
     },
+    nature !== "all" && {
+      label:
+        nature === "positive"
+          ? t.attendance.encouragements
+          : t.attendance.remarks,
+      clear: () => setNature("all"),
+    },
     order !== "newest" && {
       label: t.attendance.oldest,
       clear: () => setOrder("newest"),
@@ -151,7 +160,13 @@ export function WebAppAttendance() {
   const reset = () => {
     setKind("all");
     setStatus("all");
+    setNature("all");
     setOrder("newest");
+  };
+  const chooseKind = (value: Kind | "all") => {
+    setKind(value);
+    if (value === "observations" || value === "punishments") setStatus("all");
+    if (value !== "observations") setNature("all");
   };
 
   const sorted = <T,>(list: T[], date: (item: T) => string) =>
@@ -164,7 +179,8 @@ export function WebAppAttendance() {
     status === "all" || justified === (status === "justified");
   const shows = (section: Kind) =>
     (kind === "all" || kind === section) &&
-    (status === "all" || section === "absences" || section === "delays");
+    (status === "all" || section === "absences" || section === "delays") &&
+    (nature === "all" || section === "observations");
 
   return (
     <>
@@ -206,7 +222,7 @@ export function WebAppAttendance() {
             <Chips
               label={t.attendance.filterKind}
               value={kind}
-              onChange={setKind}
+              onChange={chooseKind}
               options={[
                 { id: "all", label: t.attendance.all },
                 { id: "absences", label: t.attendance.absences },
@@ -215,16 +231,29 @@ export function WebAppAttendance() {
                 { id: "observations", label: t.attendance.observations },
               ]}
             />
-            <Chips
-              label={t.attendance.filterStatus}
-              value={status}
-              onChange={setStatus}
-              options={[
-                { id: "all", label: t.attendance.allStatus },
-                { id: "notJustified", label: t.common.notJustified },
-                { id: "justified", label: t.common.justified },
-              ]}
-            />
+            {kind === "observations" ? (
+              <Chips
+                label={t.attendance.filterNature}
+                value={nature}
+                onChange={setNature}
+                options={[
+                  { id: "all", label: t.attendance.allStatus },
+                  { id: "positive", label: t.attendance.encouragements },
+                  { id: "negative", label: t.attendance.remarks },
+                ]}
+              />
+            ) : kind === "punishments" ? null : (
+              <Chips
+                label={t.attendance.filterStatus}
+                value={status}
+                onChange={setStatus}
+                options={[
+                  { id: "all", label: t.attendance.allStatus },
+                  { id: "notJustified", label: t.common.notJustified },
+                  { id: "justified", label: t.common.justified },
+                ]}
+              />
+            )}
             <Chips
               label={t.attendance.order}
               value={order}
@@ -318,7 +347,7 @@ export function WebAppAttendance() {
                   ).map((delay) => (
                     <Item
                       key={delay.id}
-                      title={`${capitalize(formatDay(delay.date, locale))} · ${delay.minutes} ${t.common.minutes}`}
+                      title={`${capitalize(formatDay(delay.date, locale))} ${t.attendance.at} ${formatTime(delay.date, locale)} · ${delay.minutes} ${t.common.minutes}`}
                       detail={delay.reason}
                       tag={
                         delay.justified
@@ -374,7 +403,11 @@ export function WebAppAttendance() {
               {shows("observations") && (
                 <Section title={t.attendance.observations}>
                   {sorted(
-                    data.observations,
+                    data.observations.filter(
+                      (observation) =>
+                        nature === "all" ||
+                        observation.positive === (nature === "positive"),
+                    ),
                     (observation) => observation.date,
                   ).map((observation) => (
                     <Item
