@@ -316,7 +316,7 @@ function WeekPicker({ week, onChange }: { week: Date; onChange: (week: Date) => 
 export function WeekNav({
   week,
   onChange,
-  calendar = false,
+  calendar = true,
 }: {
   week: Date;
   onChange: (week: Date) => void;

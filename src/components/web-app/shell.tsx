@@ -290,9 +290,6 @@ function MobileBar({
         </button>
         <p className="min-w-0 flex-1 truncate text-lg font-semibold">{title}</p>
         {badge}
-        <Link href={home as Route} className="px-2" aria-label={t.nav.home}>
-          <Wordmark name={t.brand} />
-        </Link>
       </header>
 
       <AnimatePresence>

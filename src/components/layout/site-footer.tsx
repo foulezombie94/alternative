@@ -50,7 +50,7 @@ export async function SiteFooter() {
 
         <div className="grid gap-12 border-t border-white/10 py-16 sm:grid-cols-2 lg:grid-cols-6">
           <div className="flex flex-col gap-4 lg:col-span-2">
-            <Logo aria-label="Papillon" role="img" className="h-7 w-auto self-start" />
+            <Logo aria-label="alternative" role="img" className="h-7 w-auto self-start" />
             <span className="flex h-8 items-center gap-2 self-start rounded-full bg-white/10 px-3 text-sm font-medium">
               <Image src={bzh} alt="" className="h-3.5 w-auto" />
               <span className="text-trim">{t.madeIn}</span>

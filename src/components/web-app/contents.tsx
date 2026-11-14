@@ -65,7 +65,7 @@ export function WebAppContents() {
   return (
     <>
       <PageHeader title={t.nav.contents}>
-        {!everything && <WeekNav week={week} onChange={setWeek} calendar />}
+        {!everything && <WeekNav week={week} onChange={setWeek} />}
         <button
           type="button"
           aria-pressed={everything}
@@ -125,9 +125,9 @@ export function WebAppContents() {
         {() =>
           filtered.length ? (
             <>
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+              <div className="grid grid-cols-2 gap-2 sm:gap-3 xl:grid-cols-3">
                 {filtered.slice(0, shown).map((lesson) => (
-                  <article key={lesson.id} className="min-w-0 rounded-xl border border-foreground/10 bg-surface p-4">
+                  <article key={lesson.id} className="min-w-0 rounded-xl border border-foreground/10 bg-surface p-3 text-sm sm:p-4 sm:text-base">
                     <p className="mb-1 font-mono text-xs tracking-widest text-foreground/50 uppercase">
                       {formatDay(lesson.date, locale, everything)} · {formatTime(lesson.date, locale)}
                     </p>
@@ -138,7 +138,7 @@ export function WebAppContents() {
                     {lesson.teachers.length > 0 && <p className="text-sm text-foreground/50">{lesson.teachers.join(", ")}</p>}
                     <div className="mt-3 flex flex-col gap-3">
                       {lesson.contents.map((content, index) => (
-                        <div key={index} className="rounded-lg bg-background p-3">
+                        <div key={index} className="rounded-lg bg-background p-2 sm:p-3">
                           {content.title && <p className="mb-1 font-medium">{content.title}</p>}
                           {content.description && <Html html={content.description} className="text-foreground/80" />}
                           <Attachments files={content.attachments} />

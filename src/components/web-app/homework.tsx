@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Clock } from "@getpapillon/papicons";
+import { Add, Check, Clock } from "@getpapillon/papicons";
 import { useMemo, useState } from "react";
 import type { HomeworkDTO } from "@/lib/pronote/types";
 import { call, useApi } from "./api";
@@ -8,7 +8,17 @@ import { useWebApp } from "./context";
 import { addDays, endOfDay, formatDay, startOfWeek } from "./format";
 import { Async, Attachments, Html, PageHeader, SubjectDot, WeekNav } from "./ui";
 
-function HomeworkCard({ homework, onToggle }: { homework: HomeworkDTO; onToggle: (done: boolean) => void }) {
+const pageSize = 30;
+
+function HomeworkCard({
+  homework,
+  onToggle,
+  withYear,
+}: {
+  homework: HomeworkDTO;
+  onToggle: (done: boolean) => void;
+  withYear: boolean;
+}) {
   const { t, locale } = useWebApp();
   const [saving, setSaving] = useState(false);
 
@@ -23,7 +33,7 @@ function HomeworkCard({ homework, onToggle }: { homework: HomeworkDTO; onToggle:
   }
 
   return (
-    <article className={`flex min-w-0 gap-3 rounded-xl border border-foreground/10 bg-surface p-4 transition-opacity ${homework.done ? "opacity-60" : ""}`}>
+    <article className={`flex min-w-0 flex-col gap-2 rounded-xl border border-foreground/10 bg-surface p-3 text-sm sm:flex-row sm:gap-3 sm:p-4 sm:text-base transition-opacity ${homework.done ? "opacity-60" : ""}`}>
       <button
         type="button"
         onClick={toggle}
@@ -38,7 +48,7 @@ function HomeworkCard({ homework, onToggle }: { homework: HomeworkDTO; onToggle:
       </button>
       <div className="min-w-0 flex-1">
         <p className="mb-1 flex items-center justify-between gap-2 font-mono text-xs tracking-widest text-foreground/50 uppercase">
-          <span className="truncate">{formatDay(homework.dueDate, locale)}</span>
+          <span className="min-w-0">{formatDay(homework.dueDate, locale, withYear)}</span>
           {homework.minutes ? (
             <span className="flex shrink-0 items-center gap-1 tracking-normal normal-case">
               <Clock className="size-3.5" />
@@ -65,20 +75,40 @@ function HomeworkCard({ homework, onToggle }: { homework: HomeworkDTO; onToggle:
 export function WebAppHomework() {
   const { t } = useWebApp();
   const [week, setWeek] = useState(() => startOfWeek(new Date()));
-  const range = useMemo(
-    () => ({ from: week.toISOString(), to: endOfDay(addDays(week, 6)).toISOString() }),
-    [week],
-  );
+  const [everything, setEverything] = useState(false);
+  const [shown, setShown] = useState(pageSize);
+  const range = useMemo(() => {
+    if (!everything) return { from: week.toISOString(), to: endOfDay(addDays(week, 6)).toISOString() };
+    const today = endOfDay(new Date());
+    return { from: addDays(today, -365).toISOString(), to: addDays(today, 365).toISOString() };
+  }, [week, everything]);
   const state = useApi<HomeworkDTO[]>("homeworks", range);
 
   return (
     <>
       <PageHeader title={t.nav.homework}>
-        <WeekNav week={week} onChange={setWeek} />
+        {!everything && <WeekNav week={week} onChange={setWeek} />}
+        <button
+          type="button"
+          aria-pressed={everything}
+          onClick={() => {
+            setEverything((value) => !value);
+            setShown(pageSize);
+          }}
+          className={`rounded-md border px-4 py-2 font-medium transition-colors ${
+            everything ? "border-primary bg-primary text-white" : "border-foreground/10 bg-surface hover:border-foreground/30"
+          }`}
+        >
+          {t.contents.everything}
+        </button>
       </PageHeader>
       <Async state={state} empty={t.homework.noHomework} isEmpty={(list) => !list.length}>
         {(list) => {
           const done = list.filter((homework) => homework.done).length;
+          const today = new Date().setHours(0, 0, 0, 0);
+          const upcoming = list.filter((homework) => new Date(homework.dueDate).getTime() >= today);
+          const past = list.filter((homework) => new Date(homework.dueDate).getTime() < today).reverse();
+          const ordered = everything ? [...upcoming, ...past] : list;
           return (
             <>
               <div className="mb-5 rounded-xl border border-foreground/10 bg-surface px-5 py-3">
@@ -92,17 +122,28 @@ export function WebAppHomework() {
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
-                {list.map((homework) => (
+              <div className="grid grid-cols-2 gap-2 sm:gap-3 xl:grid-cols-3 2xl:grid-cols-4">
+                {ordered.slice(0, everything ? shown : undefined).map((homework) => (
                   <HomeworkCard
                     key={homework.id}
                     homework={homework}
+                    withYear={everything}
                     onToggle={(value) =>
                       state.update(list.map((item) => (item.id === homework.id ? { ...item, done: value } : item)))
                     }
                   />
                 ))}
               </div>
+              {everything && ordered.length > shown && (
+                <button
+                  type="button"
+                  onClick={() => setShown((value) => value + pageSize)}
+                  className="mx-auto mt-4 flex items-center gap-1.5 rounded-lg border border-foreground/10 bg-surface px-5 py-2 text-sm font-medium transition-colors hover:border-foreground/30"
+                >
+                  <Add aria-hidden className="size-4" />
+                  {ordered.length - shown} {t.attendance.more}
+                </button>
+              )}
             </>
           );
         }}

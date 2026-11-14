@@ -189,7 +189,7 @@ export function WebAppTimetable() {
           if (!courses.length && !weekHolidays.some(Boolean)) return <Empty>{t.timetable.noCourses}</Empty>;
 
           return (
-            <div className={`grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 ${columnClasses[days.length] ?? "lg:grid-cols-5"}`}>
+            <div className={`grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 ${columnClasses[days.length] ?? "lg:grid-cols-5"}`}>
               {days.map((day, dayIndex) => {
                 const list = courses.filter((course) => sameDay(new Date(course.from), day));
                 const today = sameDay(day, new Date());
@@ -199,7 +199,7 @@ export function WebAppTimetable() {
                 return (
                   <section
                     key={dayKey(day)}
-                    className={`flex min-w-0 flex-col rounded-xl p-3 border ${today ? "border-accent/50 bg-accent/5" : "border-foreground/10 bg-surface"}`}
+                    className={`flex min-w-0 flex-col rounded-xl p-2 text-sm sm:p-3 sm:text-base border ${today ? "border-accent/50 bg-accent/5" : "border-foreground/10 bg-surface"}`}
                   >
                     <h2 className={`mb-3 px-1 font-semibold ${today ? "text-accent" : ""}`}>
                       {capitalize(formatDay(day, locale))}

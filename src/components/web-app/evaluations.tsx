@@ -21,9 +21,9 @@ export function WebAppEvaluations() {
       </PageHeader>
       <Async state={after(periods, state, [])} empty={t.evaluations.none} isEmpty={(list) => !list.length}>
         {(list) => (
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3 xl:grid-cols-3">
             {list.map((evaluation) => (
-              <article key={evaluation.id} className="min-w-0 rounded-xl border border-foreground/10 bg-surface p-4">
+              <article key={evaluation.id} className="min-w-0 rounded-xl border border-foreground/10 bg-surface p-3 text-sm sm:p-4 sm:text-base">
                 <p className="mb-1 font-mono text-xs tracking-widest text-foreground/50 uppercase">
                   {formatDay(evaluation.date, locale)}
                 </p>
@@ -34,7 +34,7 @@ export function WebAppEvaluations() {
                 {evaluation.description && <p className="mt-2 text-foreground/80">{evaluation.description}</p>}
                 <ul className="mt-3 flex flex-col gap-2">
                   {evaluation.skills.map((skill, index) => (
-                    <li key={index} className="flex items-start gap-3 rounded-lg bg-background p-3">
+                    <li key={index} className="flex flex-col items-start gap-2 rounded-lg bg-background p-2 sm:flex-row sm:gap-3 sm:p-3">
                       <span
                         title={skill.level}
                         className="flex h-7 min-w-9 shrink-0 items-center justify-center rounded-md bg-primary px-1.5 font-mono text-xs font-semibold text-white"
