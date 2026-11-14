@@ -1,5 +1,6 @@
 const webAppFr = {
-  metadataTitle: "Papillon Web",
+  brand: "alternative",
+  metadataTitle: "Alternative",
   metadataDescription: "Ta vie scolaire Pronote dans le navigateur : notes, emploi du temps, devoirs et plus.",
   openWebApp: "Ouvrir sur le web",
   nav: {
@@ -139,7 +140,7 @@ const webAppFr = {
     bonus: "Bonus",
     optional: "Optionnelle",
     noGrades: "Aucune note pour cette période.",
-    computed: "Moyenne calculée par Papillon",
+    computed: "Moyenne calculée automatiquement",
   },
   attendance: {
     absences: "Absences",

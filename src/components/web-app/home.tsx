@@ -54,9 +54,9 @@ function Courses() {
                   <li
                     key={course.id}
                     aria-current={isLive(course, now) ? "time" : undefined}
-                    className={`flex items-center gap-3 rounded-2xl p-3 ${
+                    className={`flex items-center gap-3 rounded-lg p-3 ${
                       course.state === CourseState.Canceled ? "opacity-50" : ""
-                    } ${isLive(course, now) ? "bg-primary/5 ring-2 ring-primary" : "bg-background"}`}
+                    } ${isLive(course, now) ? "bg-accent/5 ring-2 ring-accent" : "bg-background"}`}
                   >
                     <span className="w-12 text-sm font-medium tabular-nums text-foreground/60">
                       {formatTime(course.from, locale)}
@@ -72,7 +72,7 @@ function Courses() {
                       {isLive(course, now) && <LiveProgress from={course.from} to={course.to} now={now} />}
                     </div>
                     {course.statusText && (
-                      <span className="max-w-2/5 truncate rounded-full bg-feature-homework/10 px-2.5 py-1 text-xs font-medium text-feature-homework">
+                      <span className="max-w-2/5 truncate rounded-md bg-feature-homework/10 px-2.5 py-1 text-xs font-medium text-feature-homework">
                         {course.statusText}
                       </span>
                     )}
@@ -105,7 +105,7 @@ function Homework() {
               .filter((homework) => !homework.done)
               .slice(0, 5)
               .map((homework) => (
-                <li key={homework.id} className="flex items-start gap-3 rounded-2xl bg-background p-3">
+                <li key={homework.id} className="flex items-start gap-3 rounded-lg bg-background p-3">
                   <span className="mt-1.5">
                     <SubjectDot color={homework.color} />
                   </span>
@@ -151,7 +151,7 @@ function Grades() {
             </div>
             <ul className="flex flex-col gap-2">
               {latest.map((grade) => (
-                <li key={grade.id} className="flex items-center gap-3 rounded-2xl bg-background p-3">
+                <li key={grade.id} className="flex items-center gap-3 rounded-lg bg-background p-3">
                   <SubjectDot color={grade.color} />
                   <div className="min-w-0 flex-1">
                     <p className="truncate font-medium">{grade.subject}</p>
@@ -181,8 +181,8 @@ function News() {
         {(list) => (
           <ul className="flex flex-col gap-2">
             {list.slice(0, 4).map((item) => (
-              <li key={item.id} className="flex items-center gap-3 rounded-2xl bg-background p-3">
-                {!item.read && <span className="size-2 shrink-0 rounded-full bg-primary" />}
+              <li key={item.id} className="flex items-center gap-3 rounded-lg bg-background p-3">
+                {!item.read && <span className="size-2 shrink-0 rounded-full bg-accent" />}
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-medium">{item.title}</p>
                   <p className="truncate text-sm text-foreground/50">{item.author}</p>
@@ -205,8 +205,8 @@ export function WebAppHome() {
     <>
       <div className="mb-8">
         <p className="text-foreground/50">{capitalize(formatDay(new Date(), locale))}</p>
-        <h1 className="text-3xl font-semibold tracking-tight">
-          {t.home.greeting} {profile.firstName} 👋
+        <h1 className="text-3xl font-medium tracking-tight">
+          {t.home.greeting} {profile.firstName}
         </h1>
       </div>
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">

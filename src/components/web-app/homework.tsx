@@ -23,7 +23,7 @@ function HomeworkCard({ homework, onToggle }: { homework: HomeworkDTO; onToggle:
   }
 
   return (
-    <article className={`flex gap-4 rounded-3xl bg-surface p-5 transition-opacity ${homework.done ? "opacity-60" : ""}`}>
+    <article className={`flex gap-4 rounded-xl border border-foreground/10 bg-surface p-5 transition-opacity ${homework.done ? "opacity-60" : ""}`}>
       <button
         type="button"
         onClick={toggle}
@@ -49,7 +49,7 @@ function HomeworkCard({ homework, onToggle }: { homework: HomeworkDTO; onToggle:
         </div>
         <Html html={homework.content} className={`text-foreground/80 ${homework.done ? "line-through" : ""}`} />
         {homework.uploadRequired && (
-          <p className="mt-2 inline-block rounded-full bg-feature-homework/10 px-3 py-1 text-sm font-medium text-feature-homework">
+          <p className="mt-2 inline-block rounded-md bg-feature-homework/10 px-3 py-1 text-sm font-medium text-feature-homework">
             {t.homework.upload}
           </p>
         )}
@@ -86,7 +86,7 @@ export function WebAppHomework() {
 
           return (
             <>
-              <div className="mb-6 rounded-3xl bg-surface p-5">
+              <div className="mb-6 rounded-xl border border-foreground/10 bg-surface p-5">
                 <p className="mb-2 font-medium">
                   {done}/{list.length} {t.homework.progress}
                 </p>

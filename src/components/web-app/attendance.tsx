@@ -9,10 +9,10 @@ import { Async, PageHeader, PeriodSelect } from "./ui";
 
 function Section({ title, count, children }: { title: string; count: number; children: ReactNode }) {
   return (
-    <section className="rounded-3xl bg-surface p-5">
-      <h2 className="mb-4 flex items-center gap-2 text-lg font-semibold">
+    <section className="rounded-xl border border-foreground/10 bg-surface p-5">
+      <h2 className="mb-4 flex items-center gap-2 font-mono text-xs font-medium tracking-widest text-foreground/50 uppercase">
         {title}
-        <span className="rounded-full bg-foreground/10 px-2.5 text-sm">{count}</span>
+        <span className="rounded-md bg-foreground/10 px-2.5 text-sm">{count}</span>
       </h2>
       {count ? <ul className="flex flex-col gap-2">{children}</ul> : null}
     </section>
@@ -21,12 +21,12 @@ function Section({ title, count, children }: { title: string; count: number; chi
 
 function Item({ title, detail, tag, tone }: { title: string; detail?: ReactNode; tag?: string; tone?: "good" | "bad" }) {
   return (
-    <li className="rounded-2xl bg-background p-4">
+    <li className="rounded-lg bg-background p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="font-medium">{title}</p>
         {tag && (
           <span
-            className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
+            className={`rounded-md px-2.5 py-0.5 text-xs font-medium ${
               tone === "good" ? "bg-primary/10 text-primary" : "bg-feature-schedule/10 text-feature-schedule"
             }`}
           >

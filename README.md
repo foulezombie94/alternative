@@ -32,6 +32,10 @@ La session est gardée dans un cookie chiffré, ce qui permet de marcher sur Ver
 
 Accueil, emploi du temps (avec le contenu des cours), devoirs (cocher « fait »), notes et moyennes, vie scolaire (absences, retards, punitions, observations), actualités (accusé de lecture), messagerie (lire, répondre, nouveau message), menus de la cantine. Français et anglais.
 
+## Design
+
+L'app web (`/fr/app`) a son propre thème, `theme-app` dans `src/app/globals.css` : fond papier, texte encre, bordures fines, un seul accent orange, polices Geist et Geist Mono. Le nom affiché se change dans `brand` (`src/i18n/dictionaries/web-app/`).
+
 ## Organisation du code
 
 - `src/app/api/pronote/route.ts` : la route serveur appelée par le navigateur. Elle contourne le blocage CORS en parlant à Pronote côté serveur.

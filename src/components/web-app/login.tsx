@@ -1,26 +1,26 @@
 "use client";
 
-import { Camera, Lock, MapPin, Pronote, QrCode, Sparkles } from "@getpapillon/papicons";
+import { Camera, Lock, MapPin, QrCode, Sparkles } from "@getpapillon/papicons";
 import jsQR from "jsqr";
 import type { Route } from "next";
 import Link from "next/link";
 import { type FormEvent, type ReactNode, useEffect, useRef, useState } from "react";
-import { Logo } from "@/components/ui/logo";
 import { Spinner } from "@/components/ui/spinner";
 import type { Locale } from "@/i18n/config";
 import type { WebAppDictionary } from "@/i18n/dictionaries/web-app/fr";
 import type { ErrorCode, InstanceDTO, LoginResult, SchoolDTO } from "@/lib/pronote/types";
 import { ApiFailure, call } from "./api";
+import { Wordmark } from "./ui";
 
 type Tab = "credentials" | "qr" | "demo";
 type QrData = { jeton: string; login: string; url: string };
 
 const input =
-  "w-full rounded-2xl bg-surface px-4 py-3 outline-none transition-shadow placeholder:text-foreground/30 focus-visible:ring-2 focus-visible:ring-primary";
+  "w-full rounded-lg border border-foreground/10 bg-surface px-4 py-3 outline-none transition-shadow placeholder:text-foreground/30 focus-visible:ring-2 focus-visible:ring-primary";
 const primaryButton =
-  "flex w-full items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 font-semibold text-white transition-[opacity,scale] hover:opacity-90 active:scale-98 disabled:opacity-50";
+  "flex w-full items-center justify-center gap-2 rounded-md bg-primary px-5 py-3 font-semibold text-white transition-[opacity,scale] hover:opacity-90 active:scale-98 disabled:opacity-50";
 const secondaryButton =
-  "flex items-center justify-center gap-2 rounded-full bg-surface px-4 py-2.5 font-medium transition-colors hover:bg-foreground/10 disabled:opacity-50";
+  "flex items-center justify-center gap-2 rounded-md border border-foreground/10 bg-surface px-4 py-2.5 font-medium transition-colors hover:bg-foreground/10 disabled:opacity-50";
 
 function readQr(text: string | undefined): QrData | null {
   if (!text) return null;
@@ -215,15 +215,15 @@ export function WebAppLogin({ t, locale }: { t: WebAppDictionary; locale: Locale
   ];
 
   return (
-    <main className="flex min-h-dvh items-center justify-center bg-surface px-5 py-12">
+    <main className="flex min-h-dvh items-center justify-center px-5 py-12">
       <div className="w-full max-w-lg">
-        <Link href={`/${locale}` as Route} className="mb-8 flex justify-center text-primary">
-          <Logo aria-hidden className="h-8" />
+        <Link href={`/${locale}` as Route} className="mb-8 flex justify-center">
+          <Wordmark name={t.brand} className="text-2xl" />
         </Link>
 
-        <div className="rounded-4xl bg-background p-6 shadow-xl shadow-foreground/5 sm:p-8">
+        <div className="rounded-2xl border border-foreground/10 bg-surface p-6 sm:p-8">
           <div className="mb-6 flex items-center gap-3">
-            <Pronote className="size-8 shrink-0 text-primary" />
+            
             <div>
               <h1 className="text-2xl font-semibold">{needsPin ? t.login.pinTitle : t.login.title}</h1>
               <p className="text-sm text-foreground/50">{needsPin ? t.login.pinText : t.login.subtitle}</p>
@@ -231,7 +231,7 @@ export function WebAppLogin({ t, locale }: { t: WebAppDictionary; locale: Locale
           </div>
 
           {error && (
-            <p role="alert" className="mb-5 rounded-2xl bg-feature-schedule/10 px-4 py-3 text-feature-schedule">
+            <p role="alert" className="mb-5 rounded-lg bg-feature-schedule/10 px-4 py-3 text-feature-schedule">
               {t.errors[error] ?? t.errors.unknown}
               {detail && (
                 <span className="mt-1 block text-sm opacity-70">
@@ -260,7 +260,7 @@ export function WebAppLogin({ t, locale }: { t: WebAppDictionary; locale: Locale
             </form>
           ) : (
             <>
-              <div role="tablist" className="mb-6 grid grid-cols-3 gap-1 rounded-full bg-surface p-1">
+              <div role="tablist" className="mb-6 grid grid-cols-3 gap-1 rounded-lg border border-foreground/10 bg-surface p-1">
                 {tabs.map(({ id, icon: TabIcon }) => (
                   <button
                     key={id}
@@ -271,8 +271,8 @@ export function WebAppLogin({ t, locale }: { t: WebAppDictionary; locale: Locale
                       setTab(id);
                       setError(null);
                     }}
-                    className={`flex items-center justify-center gap-2 rounded-full px-3 py-2 text-sm font-medium transition-colors ${
-                      tab === id ? "bg-background shadow-sm" : "text-foreground/60 hover:text-foreground"
+                    className={`flex items-center justify-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                      tab === id ? "bg-primary text-white" : "text-foreground/60 hover:text-foreground"
                     }`}
                   >
                     <TabIcon className="size-4" />
@@ -310,7 +310,7 @@ export function WebAppLogin({ t, locale }: { t: WebAppDictionary; locale: Locale
                   {locationError && <p className="text-sm text-feature-schedule">{t.login.locationDenied}</p>}
 
                   {schools && (
-                    <ul className="flex max-h-60 flex-col gap-1 overflow-y-auto rounded-2xl bg-surface p-2">
+                    <ul className="flex max-h-60 flex-col gap-1 overflow-y-auto rounded-lg border border-foreground/10 bg-surface p-2">
                       {!schools.length && <li className="p-3 text-foreground/50">{t.login.noSchool}</li>}
                       {schools.map((school) => (
                         <li key={school.url}>
@@ -321,7 +321,7 @@ export function WebAppLogin({ t, locale }: { t: WebAppDictionary; locale: Locale
                               setSchools(null);
                               setInstance(null);
                             }}
-                            className="w-full rounded-xl px-3 py-2 text-left transition-colors hover:bg-background"
+                            className="w-full rounded-md px-3 py-2 text-left transition-colors hover:bg-background"
                           >
                             <span className="block font-medium">{school.name}</span>
                             <span className="text-sm text-foreground/50">
@@ -334,7 +334,7 @@ export function WebAppLogin({ t, locale }: { t: WebAppDictionary; locale: Locale
                   )}
 
                   {instance && (
-                    <div className="rounded-2xl bg-primary/10 px-4 py-3 text-sm">
+                    <div className="rounded-lg bg-primary/10 px-4 py-3 text-sm">
                       <p>
                         {t.login.instanceFound} <strong>{instance.name}</strong>
                       </p>
@@ -397,10 +397,10 @@ export function WebAppLogin({ t, locale }: { t: WebAppDictionary; locale: Locale
                     </button>
                   </div>
                   {camera && (
-                    <video ref={videoRef} muted playsInline className="aspect-square w-full rounded-2xl bg-foreground object-cover" />
+                    <video ref={videoRef} muted playsInline className="aspect-square w-full rounded-lg bg-foreground object-cover" />
                   )}
                   {qr && (
-                    <p className="rounded-2xl bg-primary/10 px-4 py-3 text-sm font-medium text-primary">
+                    <p className="rounded-lg bg-primary/10 px-4 py-3 text-sm font-medium text-primary">
                       {t.login.qrDetected} · {new URL(qr.url).host}
                     </p>
                   )}

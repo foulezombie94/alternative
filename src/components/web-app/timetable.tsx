@@ -28,7 +28,7 @@ function HolidayPanel({ holiday }: { holiday: HolidayDTO }) {
 
   return (
     <div
-      className="relative flex min-h-96 flex-1 items-center justify-center overflow-hidden rounded-2xl bg-background"
+      className="relative flex min-h-96 flex-1 items-center justify-center overflow-hidden rounded-lg bg-background"
       style={{
         backgroundImage:
           "repeating-linear-gradient(-45deg, color-mix(in oklab, var(--color-foreground) 5%, transparent) 0 12px, transparent 12px 24px)",
@@ -63,7 +63,7 @@ function Badge({ course }: { course: CourseDTO }) {
       : course.state === CourseState.Test
         ? "bg-feature-news/10 text-feature-news"
         : "bg-feature-homework/10 text-feature-homework";
-  return <span className={`inline-block max-w-full rounded-full px-2.5 py-0.5 text-xs font-medium wrap-anywhere ${tone}`}>{label}</span>;
+  return <span className={`inline-block max-w-full rounded-md px-2.5 py-0.5 text-xs font-medium wrap-anywhere ${tone}`}>{label}</span>;
 }
 
 function Resources({ resourceId }: { resourceId: string }) {
@@ -113,7 +113,7 @@ function CourseDetail({ course, onClose }: { course: CourseDTO; onClose: () => v
           </div>
         ))}
       </dl>
-      {course.notes && <p className="mt-4 rounded-2xl bg-surface p-3">{course.notes}</p>}
+      {course.notes && <p className="mt-4 rounded-lg border border-foreground/10 bg-surface p-3">{course.notes}</p>}
       {course.resourceId && <Resources resourceId={course.resourceId} />}
     </Dialog>
   );
@@ -154,9 +154,9 @@ export function WebAppTimetable() {
                 return (
                   <section
                     key={dayKey(day)}
-                    className={`flex min-w-0 flex-col rounded-3xl p-3 ${today ? "bg-primary/10" : "bg-surface"}`}
+                    className={`flex min-w-0 flex-col rounded-xl p-3 border ${today ? "border-accent/50 bg-accent/5" : "border-foreground/10 bg-surface"}`}
                   >
-                    <h2 className={`mb-3 px-1 font-semibold ${today ? "text-primary" : ""}`}>
+                    <h2 className={`mb-3 px-1 font-semibold ${today ? "text-accent" : ""}`}>
                       {capitalize(formatDay(day, locale))}
                     </h2>
                     {dayOff && <HolidayPanel holiday={holiday} />}
@@ -171,9 +171,9 @@ export function WebAppTimetable() {
                               type="button"
                               onClick={() => setSelected(course)}
                               aria-current={live ? "time" : undefined}
-                              className={`flex w-full gap-3 rounded-2xl p-3 text-left transition-shadow hover:shadow-md ${
+                              className={`flex w-full gap-3 rounded-lg p-3 text-left transition-colors hover:bg-foreground/5 ${
                                 canceled ? "opacity-60" : ""
-                              } ${live ? "bg-primary/5 ring-2 ring-primary" : "bg-background"}`}
+                              } ${live ? "bg-accent/5 ring-2 ring-accent" : "bg-background"}`}
                             >
                               <span
                                 aria-hidden

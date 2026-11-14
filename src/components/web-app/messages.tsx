@@ -10,7 +10,7 @@ import { formatShortDate, formatTime } from "./format";
 import { Async, Attachments, Dialog, Empty, ErrorBox, Html, PageHeader } from "./ui";
 
 const field =
-  "w-full rounded-2xl bg-surface px-4 py-3 outline-none placeholder:text-foreground/30 focus-visible:ring-2 focus-visible:ring-primary";
+  "w-full rounded-lg border border-foreground/10 bg-surface px-4 py-3 outline-none placeholder:text-foreground/30 focus-visible:ring-2 focus-visible:ring-primary";
 
 function Thread({ chat, onSent }: { chat: ChatDTO; onSent: () => void }) {
   const { t, locale } = useWebApp();
@@ -49,7 +49,7 @@ function Thread({ chat, onSent }: { chat: ChatDTO; onSent: () => void }) {
               {thread.messages.map((message) => (
                 <li key={message.id} className={`flex ${message.mine ? "justify-end" : "justify-start"}`}>
                   <div
-                    className={`max-w-11/12 rounded-3xl px-4 py-3 sm:max-w-4/5 ${
+                    className={`max-w-11/12 rounded-xl px-4 py-3 sm:max-w-4/5 ${
                       message.mine ? "bg-primary text-white [&_a]:text-white" : "bg-background"
                     }`}
                   >
@@ -75,7 +75,7 @@ function Thread({ chat, onSent }: { chat: ChatDTO; onSent: () => void }) {
                 <button
                   type="submit"
                   disabled={sending || !draft.trim()}
-                  className="flex items-center gap-2 rounded-full bg-primary px-5 py-3 font-semibold text-white disabled:opacity-50"
+                  className="flex items-center gap-2 rounded-md bg-primary px-5 py-3 font-semibold text-white disabled:opacity-50"
                 >
                   {sending && <Spinner className="size-4" />}
                   {t.messages.send}
@@ -142,7 +142,7 @@ function NewChat({ onClose, onCreated }: { onClose: () => void; onCreated: () =>
                   const checked = picked.includes(recipient.id);
                   return (
                     <li key={recipient.id}>
-                      <label className="flex cursor-pointer items-center gap-3 rounded-xl px-3 py-2 hover:bg-surface">
+                      <label className="flex cursor-pointer items-center gap-3 rounded-md px-3 py-2 hover:bg-surface">
                         <input
                           type="checkbox"
                           checked={checked}
@@ -183,7 +183,7 @@ function NewChat({ onClose, onCreated }: { onClose: () => void; onCreated: () =>
         <button
           type="submit"
           disabled={sending || !picked.length || !subject.trim() || !content.trim()}
-          className="flex items-center justify-center gap-2 rounded-full bg-primary px-5 py-3 font-semibold text-white disabled:opacity-50"
+          className="flex items-center justify-center gap-2 rounded-md bg-primary px-5 py-3 font-semibold text-white disabled:opacity-50"
         >
           {sending && <Spinner className="size-4" />}
           {sending ? t.messages.sending : t.messages.send}
@@ -205,7 +205,7 @@ export function WebAppMessages() {
         <button
           type="button"
           onClick={() => setComposing(true)}
-          className="flex items-center gap-2 rounded-full bg-primary px-4 py-2 font-semibold text-white transition-opacity hover:opacity-90"
+          className="flex items-center gap-2 rounded-md bg-primary px-4 py-2 font-semibold text-white transition-opacity hover:opacity-90"
         >
           <Add className="size-5" />
           {t.messages.newMessage}
@@ -222,8 +222,8 @@ export function WebAppMessages() {
                     <button
                       type="button"
                       onClick={() => setSelectedId(chat.id)}
-                      className={`w-full rounded-2xl p-4 text-left transition-colors ${
-                        chat.id === selected?.id ? "bg-primary/10" : "bg-surface hover:bg-foreground/5"
+                      className={`w-full rounded-lg p-4 text-left transition-colors ${
+                        chat.id === selected?.id ? "border border-foreground bg-surface" : "border border-foreground/10 bg-surface hover:border-foreground/30"
                       }`}
                     >
                       <span className="flex items-center justify-between gap-2">
@@ -233,7 +233,7 @@ export function WebAppMessages() {
                       <span className="flex items-center justify-between gap-2 text-sm text-foreground/50">
                         <span className="truncate">{chat.with}</span>
                         {chat.unread > 0 && (
-                          <span className="shrink-0 rounded-full bg-primary px-2 text-xs font-semibold text-white">
+                          <span className="shrink-0 rounded-md bg-primary px-2 text-xs font-semibold text-white">
                             {chat.unread} {t.messages.unread}
                           </span>
                         )}
@@ -242,7 +242,7 @@ export function WebAppMessages() {
                   </li>
                 ))}
               </ul>
-              <section className="rounded-3xl bg-surface p-6 lg:col-span-3">
+              <section className="rounded-xl border border-foreground/10 bg-surface p-6 lg:col-span-3">
                 {selected ? (
                   <Thread key={selected.id} chat={selected} onSent={state.reload} />
                 ) : (

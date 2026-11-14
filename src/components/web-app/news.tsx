@@ -36,7 +36,7 @@ function Acknowledge({ item, onDone }: { item: NewsDTO; onDone: () => void }) {
           setSaving(false);
         }
       }}
-      className="mt-6 rounded-full bg-primary px-5 py-2.5 font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+      className="mt-6 rounded-md bg-primary px-5 py-2.5 font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
     >
       {t.news.acknowledge}
     </button>
@@ -122,12 +122,12 @@ export function WebAppNews() {
                     <button
                       type="button"
                       onClick={() => setSelectedId(item.id)}
-                      className={`w-full rounded-2xl p-4 text-left transition-colors ${
-                        item.id === selected?.id ? "bg-primary/10" : "bg-surface hover:bg-foreground/5"
+                      className={`w-full rounded-lg p-4 text-left transition-colors ${
+                        item.id === selected?.id ? "border border-foreground bg-surface" : "border border-foreground/10 bg-surface hover:border-foreground/30"
                       }`}
                     >
                       <span className="flex items-center gap-2">
-                        {!item.read && <span className="size-2 shrink-0 rounded-full bg-primary" aria-label={t.news.unread} />}
+                        {!item.read && <span className="size-2 shrink-0 rounded-full bg-accent" aria-label={t.news.unread} />}
                         <span className="truncate font-semibold">{item.title}</span>
                       </span>
                       <span className="block truncate text-sm text-foreground/50">
@@ -137,7 +137,7 @@ export function WebAppNews() {
                   </li>
                 ))}
               </ul>
-              <article className="rounded-3xl bg-surface p-6 lg:col-span-3">
+              <article className="rounded-xl border border-foreground/10 bg-surface p-6 lg:col-span-3">
                 {selected ? (
                   <>
                     {selected.category && <p className="mb-1 text-sm font-medium text-primary">{selected.category}</p>}
@@ -153,7 +153,7 @@ export function WebAppNews() {
                           <p className="mb-2 text-foreground/60">
                             {t.news.diagnosticHint} (patch: {String(debug.data.patched)})
                           </p>
-                          <pre className="max-h-96 overflow-auto rounded-xl bg-background p-3 text-xs whitespace-pre-wrap select-all">
+                          <pre className="max-h-96 overflow-auto rounded-md bg-background p-3 text-xs whitespace-pre-wrap select-all">
                             {debug.data.raw ?? "null"}
                           </pre>
                         </>

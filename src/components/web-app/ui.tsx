@@ -13,7 +13,7 @@ import { addDays, formatDuration, formatShortDate, startOfWeek } from "./format"
 export function PageHeader({ title, children }: { title: string; children?: ReactNode }) {
   return (
     <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-      <h1 className="text-3xl font-semibold tracking-tight">{title}</h1>
+      <h1 className="text-3xl font-medium tracking-tight">{title}</h1>
       {children && <div className="flex flex-wrap items-center gap-2">{children}</div>}
     </div>
   );
@@ -31,10 +31,10 @@ export function Panel({
   className?: string;
 }) {
   return (
-    <section className={`min-w-0 rounded-3xl bg-surface p-5 ${className}`}>
+    <section className={`min-w-0 rounded-xl border border-foreground/10 bg-surface p-5 ${className}`}>
       {(title || action) && (
         <div className="mb-4 flex items-center justify-between gap-3">
-          {title && <h2 className="text-lg font-semibold">{title}</h2>}
+          {title && <h2 className="font-mono text-xs font-medium tracking-widest text-foreground/50 uppercase">{title}</h2>}
           {action}
         </div>
       )}
@@ -78,7 +78,7 @@ export function ErrorBox({ error, retry }: { error: ApiFailure; retry?: () => vo
         <button
           type="button"
           onClick={retry}
-          className="rounded-full bg-foreground/5 px-4 py-2 font-medium transition-colors hover:bg-foreground/10"
+          className="rounded-md bg-foreground/5 px-4 py-2 font-medium transition-colors hover:bg-foreground/10"
         >
           {t.errors.retry}
         </button>
@@ -130,7 +130,7 @@ export function Attachments({ files }: { files: AttachmentDTO[] }) {
               href={file.url}
               target="_blank"
               rel="noreferrer"
-              className="flex items-center gap-2 rounded-full bg-background px-3 py-1.5 text-sm font-medium transition-colors hover:bg-foreground/5"
+              className="flex items-center gap-2 rounded-md bg-background px-3 py-1.5 text-sm font-medium transition-colors hover:bg-foreground/5"
             >
               <Paper className="size-4 text-primary" />
               {file.name}
@@ -145,7 +145,7 @@ export function Attachments({ files }: { files: AttachmentDTO[] }) {
 export function WeekNav({ week, onChange }: { week: Date; onChange: (week: Date) => void }) {
   const { t, locale } = useWebApp();
   const current = startOfWeek(new Date()).getTime() === week.getTime();
-  const button = "flex size-10 items-center justify-center rounded-full bg-surface transition-colors hover:bg-foreground/10";
+  const button = "flex size-10 items-center justify-center rounded-full border border-foreground/10 bg-surface transition-colors hover:bg-foreground/10";
 
   return (
     <div className="flex items-center gap-2">
@@ -161,7 +161,7 @@ export function WeekNav({ week, onChange }: { week: Date; onChange: (week: Date)
       {!current && (
         <button
           type="button"
-          className="rounded-full bg-surface px-4 py-2 text-sm font-medium transition-colors hover:bg-foreground/10"
+          className="rounded-md border border-foreground/10 bg-surface px-4 py-2 text-sm font-medium transition-colors hover:bg-foreground/10"
           onClick={() => onChange(startOfWeek(new Date()))}
         >
           {t.common.thisWeek}
@@ -187,7 +187,7 @@ export function PeriodSelect({
       <select
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="cursor-pointer rounded-full bg-surface px-4 py-2 font-medium outline-none focus-visible:ring-2 focus-visible:ring-primary"
+        className="cursor-pointer rounded-md border border-foreground/10 bg-surface px-4 py-2 font-medium outline-none focus-visible:ring-2 focus-visible:ring-primary"
       >
         {periods.map((period) => (
           <option key={period.id} value={period.id}>
@@ -224,7 +224,7 @@ export function Dialog({ title, onClose, children }: { title: string; onClose: (
         role="dialog"
         aria-modal
         aria-label={title}
-        className="max-h-dvh w-full max-w-xl overflow-y-auto rounded-3xl bg-background p-6 shadow-2xl"
+        className="max-h-dvh w-full max-w-xl overflow-y-auto rounded-xl bg-background p-6 shadow-2xl"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="mb-4 flex items-start justify-between gap-4">
@@ -232,7 +232,7 @@ export function Dialog({ title, onClose, children }: { title: string; onClose: (
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full bg-surface px-3 py-1 text-sm font-medium transition-colors hover:bg-foreground/10"
+            className="rounded-md border border-foreground/10 bg-surface px-3 py-1 text-sm font-medium transition-colors hover:bg-foreground/10"
           >
             {t.common.close}
           </button>
@@ -266,11 +266,11 @@ export function LiveProgress({ from, to, now }: { from: string; to: string; now:
 
   return (
     <span className="mt-2 block">
-      <span className="flex flex-wrap items-center justify-between gap-x-2 text-xs font-semibold whitespace-nowrap text-primary">
+      <span className="flex flex-wrap items-center justify-between gap-x-2 text-xs font-semibold whitespace-nowrap text-accent">
         <span className="flex items-center gap-1.5">
           <motion.span
             aria-hidden
-            className="size-2 rounded-full bg-primary"
+            className="size-2 rounded-full bg-accent"
             animate={reduceMotion ? undefined : { opacity: [1, 0.3, 1], scale: [1, 1.4, 1] }}
             transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
           />
@@ -280,9 +280,18 @@ export function LiveProgress({ from, to, now }: { from: string; to: string; now:
           {t.timetable.endsIn} {formatDuration(left, { hours: t.common.hours, minutes: t.common.minutes })}
         </span>
       </span>
-      <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-primary/15">
-        <span className="block h-full rounded-full bg-primary transition-[width] duration-1000" style={{ width: `${progress}%` }} />
+      <span className="mt-1 block h-1.5 overflow-hidden rounded-full bg-accent/15">
+        <span className="block h-full rounded-full bg-accent transition-[width] duration-1000" style={{ width: `${progress}%` }} />
       </span>
+    </span>
+  );
+}
+
+export function Wordmark({ name, className = "" }: { name: string; className?: string }) {
+  return (
+    <span className={`flex items-center gap-2 font-mono font-medium tracking-tight text-foreground lowercase ${className}`}>
+      <span aria-hidden className="size-2.5 rounded-xs bg-accent" />
+      {name}
     </span>
   );
 }

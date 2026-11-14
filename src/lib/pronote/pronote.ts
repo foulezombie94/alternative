@@ -60,7 +60,7 @@ import {
   type Score,
 } from "./types";
 
-const securitySourceName = "Papillon Web";
+const securitySourceName = "Alternative Web";
 
 const tabFeatures: Partial<Record<TabLocation, Feature>> = {
   [TabLocation.Timetable]: "timetable",

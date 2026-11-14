@@ -1,7 +1,8 @@
 import type { WebAppDictionary } from "./fr";
 
 const webAppEn: WebAppDictionary = {
-  metadataTitle: "Papillon Web",
+  brand: "alternative",
+  metadataTitle: "Alternative",
   metadataDescription: "Your Pronote school life in the browser: grades, schedule, homework and more.",
   openWebApp: "Open on the web",
   nav: {
@@ -141,7 +142,7 @@ const webAppEn: WebAppDictionary = {
     bonus: "Bonus",
     optional: "Optional",
     noGrades: "No grades for this period.",
-    computed: "Average computed by Papillon",
+    computed: "Automatically computed average",
   },
   attendance: {
     absences: "Absences",

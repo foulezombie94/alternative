@@ -156,7 +156,7 @@ export class DemoService implements SchoolService {
       name: "MARTIN Camille",
       firstName: "Camille",
       className: "Seconde 2",
-      school: "Lycée Papillon (démo)",
+      school: "Lycée de démonstration",
       demo: true,
       features: [...features],
     };

@@ -15,7 +15,7 @@ function Meal({ title, dishes }: { title: string; dishes: DishesDTO }) {
   if (!filled.length) return null;
 
   return (
-    <div className="rounded-2xl bg-background p-4">
+    <div className="rounded-lg bg-background p-4">
       <p className="mb-3 text-sm font-semibold text-primary">{title}</p>
       <dl className="flex flex-col gap-2">
         {filled.map((course) => (
@@ -52,8 +52,8 @@ export function WebAppCanteen() {
               .map((day) => {
                 const today = sameDay(new Date(day.date), new Date());
                 return (
-                  <section key={day.date} className={`rounded-3xl p-4 ${today ? "bg-primary/10" : "bg-surface"}`}>
-                    <h2 className={`mb-3 px-1 font-semibold ${today ? "text-primary" : ""}`}>
+                  <section key={day.date} className={`rounded-xl p-4 border ${today ? "border-accent/50 bg-accent/5" : "border-foreground/10 bg-surface"}`}>
+                    <h2 className={`mb-3 px-1 font-semibold ${today ? "text-accent" : ""}`}>
                       {capitalize(formatDay(day.date, locale))}
                     </h2>
                     <div className="flex flex-col gap-3">

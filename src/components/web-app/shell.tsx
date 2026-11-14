@@ -19,14 +19,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
-import { Logo } from "@/components/ui/logo";
 import type { Locale } from "@/i18n/config";
 import type { WebAppDictionary } from "@/i18n/dictionaries/web-app/fr";
 import { easeOutPapillon } from "@/lib/motion";
 import type { Feature, ProfileDTO } from "@/lib/pronote/types";
 import { call, useApi } from "./api";
 import { WebAppContext } from "./context";
-import { ErrorBox, Loader } from "./ui";
+import { ErrorBox, Loader, Wordmark } from "./ui";
 
 type Icon = typeof Home;
 
@@ -95,7 +94,7 @@ export function WebAppShell({ t, locale, children }: { t: WebAppDictionary; loca
         key={key}
         href={href as Route}
         aria-current={active ? "page" : undefined}
-        className={`flex shrink-0 items-center gap-3 rounded-2xl px-4 font-medium transition-colors ${large ? "py-3.5 text-lg" : "py-2.5"} ${
+        className={`flex shrink-0 items-center gap-3 rounded-lg px-4 font-medium transition-colors ${large ? "py-3.5 text-lg" : "py-2.5"} ${
           active ? "bg-primary text-white" : "text-foreground/70 hover:bg-foreground/5 hover:text-foreground"
         }`}
       >
@@ -106,7 +105,7 @@ export function WebAppShell({ t, locale, children }: { t: WebAppDictionary; loca
 
   const account = (
     <>
-      <div className="mb-2 flex items-center gap-3 rounded-2xl bg-surface p-3">
+      <div className="mb-2 flex items-center gap-3 rounded-lg border border-foreground/10 bg-surface p-3">
         <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary font-semibold text-white">
           {initials}
         </span>
@@ -117,7 +116,7 @@ export function WebAppShell({ t, locale, children }: { t: WebAppDictionary; loca
       </div>
       <Link
         href={`/${locale}` as Route}
-        className="flex items-center gap-3 rounded-2xl px-4 py-2.5 font-medium text-foreground/70 transition-colors hover:bg-foreground/5"
+        className="flex items-center gap-3 rounded-lg px-4 py-2.5 font-medium text-foreground/70 transition-colors hover:bg-foreground/5"
       >
         <ArrowLeft className="size-5" />
         {t.nav.backToSite}
@@ -125,7 +124,7 @@ export function WebAppShell({ t, locale, children }: { t: WebAppDictionary; loca
       <button
         type="button"
         onClick={logout}
-        className="flex items-center gap-3 rounded-2xl px-4 py-2.5 text-left font-medium text-feature-schedule transition-colors hover:bg-feature-schedule/10"
+        className="flex items-center gap-3 rounded-lg px-4 py-2.5 text-left font-medium text-feature-schedule transition-colors hover:bg-feature-schedule/10"
       >
         <Logout className="size-5" />
         {t.nav.logout}
@@ -134,7 +133,7 @@ export function WebAppShell({ t, locale, children }: { t: WebAppDictionary; loca
   );
 
   const demoBadge = user.demo && (
-    <span className="rounded-full bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">{t.nav.demoBadge}</span>
+    <span className="rounded-md bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">{t.nav.demoBadge}</span>
   );
 
   return (
@@ -142,8 +141,8 @@ export function WebAppShell({ t, locale, children }: { t: WebAppDictionary; loca
       <div className="min-h-dvh lg:flex">
         <aside className="sticky top-0 hidden h-dvh w-72 shrink-0 flex-col gap-1 border-r border-foreground/5 bg-background p-5 lg:flex">
           <div className="mb-4 flex items-center justify-between gap-3 px-2">
-            <Link href={base as Route} className="text-primary" aria-label={t.nav.home}>
-              <Logo aria-hidden className="h-6" />
+            <Link href={base as Route} aria-label={t.nav.home}>
+              <Wordmark name={t.brand} className="text-lg" />
             </Link>
             {demoBadge}
           </div>
@@ -226,8 +225,8 @@ function MobileBar({
         </button>
         <p className="min-w-0 flex-1 truncate text-lg font-semibold">{title}</p>
         {badge}
-        <Link href={home as Route} className="px-2 text-primary" aria-label={t.nav.home}>
-          <Logo aria-hidden className="h-5" />
+        <Link href={home as Route} className="px-2" aria-label={t.nav.home}>
+          <Wordmark name={t.brand} />
         </Link>
       </header>
 
@@ -260,8 +259,8 @@ function MobileBar({
             }}
           >
             <div className="mb-3 flex items-center justify-between gap-3 pl-2">
-              <Link href={home as Route} className="text-primary" aria-label={t.nav.home}>
-                <Logo aria-hidden className="h-6" />
+              <Link href={home as Route} aria-label={t.nav.home}>
+                <Wordmark name={t.brand} className="text-lg" />
               </Link>
               <button
                 type="button"
