@@ -5,11 +5,11 @@ import { useMemo, useState } from "react";
 import type { HomeworkDTO } from "@/lib/pronote/types";
 import { call, useApi } from "./api";
 import { useWebApp } from "./context";
-import { addDays, capitalize, dayKey, endOfDay, formatDay, startOfWeek } from "./format";
+import { addDays, endOfDay, formatDay, startOfWeek } from "./format";
 import { Async, Attachments, Html, PageHeader, SubjectDot, WeekNav } from "./ui";
 
 function HomeworkCard({ homework, onToggle }: { homework: HomeworkDTO; onToggle: (done: boolean) => void }) {
-  const { t } = useWebApp();
+  const { t, locale } = useWebApp();
   const [saving, setSaving] = useState(false);
 
   async function toggle() {
@@ -23,7 +23,7 @@ function HomeworkCard({ homework, onToggle }: { homework: HomeworkDTO; onToggle:
   }
 
   return (
-    <article className={`flex gap-4 rounded-xl border border-foreground/10 bg-surface p-5 transition-opacity ${homework.done ? "opacity-60" : ""}`}>
+    <article className={`flex min-w-0 gap-3 rounded-xl border border-foreground/10 bg-surface p-4 transition-opacity ${homework.done ? "opacity-60" : ""}`}>
       <button
         type="button"
         onClick={toggle}
@@ -37,16 +37,19 @@ function HomeworkCard({ homework, onToggle }: { homework: HomeworkDTO; onToggle:
         {homework.done && <Check className="size-4" />}
       </button>
       <div className="min-w-0 flex-1">
-        <div className="mb-1 flex flex-wrap items-center gap-2">
-          <SubjectDot color={homework.color} />
-          <h3 className="font-semibold">{homework.subject}</h3>
+        <p className="mb-1 flex items-center justify-between gap-2 font-mono text-xs tracking-widest text-foreground/50 uppercase">
+          <span className="truncate">{formatDay(homework.dueDate, locale)}</span>
           {homework.minutes ? (
-            <span className="flex items-center gap-1 text-sm text-foreground/50">
-              <Clock className="size-4" />
+            <span className="flex shrink-0 items-center gap-1 tracking-normal normal-case">
+              <Clock className="size-3.5" />
               {homework.minutes} {t.common.minutes}
             </span>
           ) : null}
-        </div>
+        </p>
+        <h3 className="mb-1 flex items-center gap-2 font-semibold">
+          <SubjectDot color={homework.color} />
+          <span className="min-w-0 wrap-anywhere">{homework.subject}</span>
+        </h3>
         <Html html={homework.content} className={`text-foreground/80 ${homework.done ? "line-through" : ""}`} />
         {homework.uploadRequired && (
           <p className="mt-2 inline-block rounded-md bg-feature-homework/10 px-3 py-1 text-sm font-medium text-feature-homework">
@@ -76,17 +79,9 @@ export function WebAppHomework() {
       <Async state={state} empty={t.homework.noHomework} isEmpty={(list) => !list.length}>
         {(list) => {
           const done = list.filter((homework) => homework.done).length;
-          const groups = new Map<string, { date: Date; items: HomeworkDTO[] }>();
-          for (const homework of list) {
-            const date = new Date(homework.dueDate);
-            const key = dayKey(date);
-            if (!groups.has(key)) groups.set(key, { date, items: [] });
-            groups.get(key)?.items.push(homework);
-          }
-
           return (
             <>
-              <div className="mb-6 rounded-xl border border-foreground/10 bg-surface p-5">
+              <div className="mb-5 rounded-xl border border-foreground/10 bg-surface px-5 py-3">
                 <p className="mb-2 font-medium">
                   {done}/{list.length} {t.homework.progress}
                 </p>
@@ -97,24 +92,15 @@ export function WebAppHomework() {
                   />
                 </div>
               </div>
-              <div className="flex flex-col gap-8">
-                {[...groups.values()].map(({ date, items }) => (
-                  <section key={dayKey(date)}>
-                    <h2 className="mb-3 text-lg font-semibold">
-                      {capitalize(formatDay(date, locale))}
-                    </h2>
-                    <div className="flex flex-col gap-3">
-                      {items.map((homework) => (
-                        <HomeworkCard
-                          key={homework.id}
-                          homework={homework}
-                          onToggle={(value) =>
-                            state.update(list.map((item) => (item.id === homework.id ? { ...item, done: value } : item)))
-                          }
-                        />
-                      ))}
-                    </div>
-                  </section>
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+                {list.map((homework) => (
+                  <HomeworkCard
+                    key={homework.id}
+                    homework={homework}
+                    onToggle={(value) =>
+                      state.update(list.map((item) => (item.id === homework.id ? { ...item, done: value } : item)))
+                    }
+                  />
                 ))}
               </div>
             </>

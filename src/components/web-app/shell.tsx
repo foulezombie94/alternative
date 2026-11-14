@@ -172,7 +172,7 @@ export function WebAppShell({ t, locale, children }: { t: WebAppDictionary; loca
         {accountOpen && <AccountDialog onClose={() => setAccountOpen(false)} />}
 
         <main className="min-w-0 flex-1 px-5 pt-4 pb-16 lg:px-10 lg:pt-10">
-          <div className={pathname.endsWith("/timetable") ? "w-full" : "mx-auto max-w-6xl"}>{children}</div>
+          <div className={pathname.endsWith("/timetable") || pathname.endsWith("/homework") ? "w-full" : "mx-auto max-w-6xl"}>{children}</div>
         </main>
       </div>
     </WebAppContext>
