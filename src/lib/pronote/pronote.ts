@@ -770,37 +770,51 @@ export class PronoteService implements SchoolService {
     return this.run((handle) => this.loadNews(handle));
   }
 
+  private async newsQuestions(handle: SessionHandle, id: string, title: string, date: string) {
+    const fetchQuestions = async (refresh: boolean) => {
+      let itemId = id;
+      if (refresh || !this.rawNews.get(itemId)) {
+        const list = await this.loadNews(handle);
+        itemId =
+          (
+            list.find((entry) => entry.id === id) ??
+            list.find((entry) => entry.title === title && entry.date === date) ??
+            list.find((entry) => entry.title === title)
+          )?.id ?? id;
+      }
+      const raw = this.rawNews.get(itemId);
+      if (!raw) throw new NotSupportedError("news");
+      return { itemId, raw, questions: await newsDetail(handle, raw) };
+    };
+
+    let result: { itemId: string; raw: unknown; questions: NewsQuestion[] };
+    try {
+      result = await fetchQuestions(false);
+    } catch (error) {
+      if (error instanceof SessionExpiredError) throw error;
+      result = await fetchQuestions(true);
+    }
+
+    const { itemId, raw, questions } = result;
+    const cached = this.newsCache.get(itemId);
+    if (cached && questions[0]) {
+      const question = questions[0];
+      if (question.kind === undefined) (question as { kind: number }).kind = 0;
+      (cached as unknown as { question: NewsQuestion }).question = question;
+      const target = cached as unknown as { public?: { N?: string; G?: number } };
+      if (!target.public?.G) {
+        const source = raw as { public?: { V?: { N?: string; G?: number }; N?: string; G?: number }; genrePublic?: number };
+        const audience = source.public?.V ?? source.public;
+        target.public = { N: audience?.N, G: audience?.G ?? source.genrePublic ?? 4 };
+      }
+    }
+    if (itemId !== id && cached) this.newsCache.set(id, cached);
+    return { itemId, item: cached, questions };
+  }
+
   newsDetail(id: string, title: string, date: string) {
     return this.run(async (handle) => {
-      const fetchQuestions = async (refresh: boolean) => {
-        let itemId = id;
-        if (refresh || !this.rawNews.get(itemId)) {
-          const list = await this.loadNews(handle);
-          itemId =
-            (
-              list.find((entry) => entry.id === id) ??
-              list.find((entry) => entry.title === title && entry.date === date) ??
-              list.find((entry) => entry.title === title)
-            )?.id ?? id;
-        }
-        const raw = this.rawNews.get(itemId);
-        if (!raw) throw new NotSupportedError("news");
-        return { itemId, questions: await newsDetail(handle, raw) };
-      };
-
-      let result: { itemId: string; questions: NewsQuestion[] };
-      try {
-        result = await fetchQuestions(false);
-      } catch (error) {
-        if (error instanceof SessionExpiredError) throw error;
-        result = await fetchQuestions(true);
-      }
-
-      const { itemId, questions } = result;
-      const cached = this.newsCache.get(itemId);
-      if (cached && questions[0]) (cached as unknown as { question: NewsQuestion }).question = questions[0];
-      if (itemId !== id && cached) this.newsCache.set(id, cached);
-
+      const { questions } = await this.newsQuestions(handle, id, title, date);
       return {
         content: questions.map((question) => question.content).filter((text) => text?.trim()).join("<br>"),
         attachments: questions.flatMap((question) => question.attachments ?? []).map(attachment),
@@ -819,11 +833,20 @@ export class PronoteService implements SchoolService {
     };
   }
 
-  async acknowledgeNews(id: string) {
-    if (!this.newsCache.has(id)) await this.news();
-    const item = this.newsCache.get(id);
-    if (!item) throw new NotSupportedError("news");
-    await this.run((handle) => newsInformationAcknowledge(handle, item, true));
+  acknowledgeNews(id: string, title = "", date = "") {
+    return this.run(async (handle) => {
+      const { itemId, item, questions } = await this.newsQuestions(handle, id, title, date);
+      const question = questions[0];
+      if (!item || !question) throw new NotSupportedError("news");
+      if (question.answered) return { acknowledged: true };
+      if (!question.shouldAnswer) {
+        await newsInformationAcknowledge(handle, item, true);
+        return { acknowledged: false };
+      }
+      await newsInformationAcknowledge(handle, item, true);
+      const check = await this.newsQuestions(handle, itemId, title, date);
+      return { acknowledged: Boolean(check.questions[0]?.answered) };
+    });
   }
 
   chats() {

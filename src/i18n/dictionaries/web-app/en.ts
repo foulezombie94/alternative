@@ -226,6 +226,8 @@ const webAppEn: WebAppDictionary = {
     unread: "Unread",
     acknowledge: "I have read this",
     acknowledged: "Read and confirmed",
+    acknowledging: "Sending to Pronote…",
+    acknowledgeFailed: "Pronote did not save the confirmation. Try again, or confirm directly on Pronote.",
     emptyContent: "The content could not be read.",
     diagnostic: "Show diagnostics",
     diagnosticHint: "Copy this text and send it so the problem can be fixed.",

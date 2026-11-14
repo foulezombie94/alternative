@@ -128,6 +128,7 @@ type Debug = { patched: boolean; raw: string | null };
 function Acknowledge({ item, onDone }: { item: NewsDTO; onDone: () => void }) {
   const { t } = useWebApp();
   const [saving, setSaving] = useState(false);
+  const [failed, setFailed] = useState(false);
 
   if (item.acknowledged) {
     return (
@@ -139,22 +140,33 @@ function Acknowledge({ item, onDone }: { item: NewsDTO; onDone: () => void }) {
   }
 
   return (
-    <button
-      type="button"
-      disabled={saving}
-      onClick={async () => {
-        setSaving(true);
-        try {
-          await call("acknowledgeNews", { id: item.id });
-          onDone();
-        } finally {
-          setSaving(false);
-        }
-      }}
-      className="mt-6 rounded-md bg-primary px-5 py-2.5 font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-    >
-      {t.news.acknowledge}
-    </button>
+    <div className="mt-6 flex flex-col items-start gap-2">
+      <button
+        type="button"
+        disabled={saving}
+        onClick={async () => {
+          setSaving(true);
+          setFailed(false);
+          try {
+            const result = await call<{ acknowledged: boolean }>("acknowledgeNews", {
+              id: item.id,
+              title: item.title,
+              date: item.date,
+            });
+            if (result.acknowledged) onDone();
+            else setFailed(true);
+          } catch {
+            setFailed(true);
+          } finally {
+            setSaving(false);
+          }
+        }}
+        className="rounded-md bg-primary px-5 py-2.5 font-semibold text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+      >
+        {saving ? t.news.acknowledging : t.news.acknowledge}
+      </button>
+      {failed && <p className="text-sm text-accent">{t.news.acknowledgeFailed}</p>}
+    </div>
   );
 }
 

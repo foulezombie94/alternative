@@ -216,8 +216,11 @@ async function runAction(service: SchoolService, action: string, body: Body): Pr
       if (!(service instanceof PronoteService)) return { patched: true, raw: null };
       return service.newsDebug(text(body, "id"));
     case "acknowledgeNews":
-      await service.acknowledgeNews(text(body, "id"));
-      return { ok: true };
+      return service.acknowledgeNews(
+        text(body, "id"),
+        typeof body.title === "string" ? body.title : "",
+        typeof body.date === "string" ? body.date : "",
+      );
     case "chats":
       return service.chats();
     case "chatMessages":

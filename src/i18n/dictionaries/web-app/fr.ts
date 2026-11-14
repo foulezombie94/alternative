@@ -224,6 +224,8 @@ const webAppFr = {
     unread: "Non lu",
     acknowledge: "J’ai pris connaissance",
     acknowledged: "Lu et confirmé",
+    acknowledging: "Envoi à Pronote…",
+    acknowledgeFailed: "Pronote n’a pas enregistré la confirmation. Réessaie, ou confirme directement sur Pronote.",
     emptyContent: "Le contenu n’a pas pu être lu.",
     diagnostic: "Afficher le diagnostic",
     diagnosticHint: "Copie ce texte et envoie-le pour corriger le problème.",

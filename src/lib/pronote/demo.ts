@@ -482,6 +482,7 @@ export class DemoService implements SchoolService {
 
   async acknowledgeNews(id: string) {
     this.acknowledged.add(id);
+    return { acknowledged: true };
   }
 
   async chats(): Promise<ChatDTO[]> {

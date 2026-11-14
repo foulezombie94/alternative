@@ -37,7 +37,7 @@ export interface SchoolService {
   attendancePeriods(): Promise<PeriodsDTO>;
   attendance(periodId: string): Promise<AttendanceDTO>;
   news(): Promise<NewsDTO[]>;
-  acknowledgeNews(id: string): Promise<void>;
+  acknowledgeNews(id: string, title?: string, date?: string): Promise<{ acknowledged: boolean }>;
   chats(): Promise<ChatDTO[]>;
   chatMessages(id: string): Promise<ChatThreadDTO>;
   sendMessage(id: string, content: string): Promise<void>;
