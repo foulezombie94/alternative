@@ -1,5 +1,6 @@
 "use client";
 
+import { showcaseEnabled } from "@/lib/showcase";
 import { Camera, Lock, MapPin, QrCode, Sparkles } from "@getpapillon/papicons";
 import jsQR from "jsqr";
 import type { Route } from "next";
@@ -217,9 +218,15 @@ export function WebAppLogin({ t, locale }: { t: WebAppDictionary; locale: Locale
   return (
     <main className="flex min-h-dvh items-center justify-center px-5 py-12">
       <div className="w-full max-w-lg">
-        <Link href={`/${locale}` as Route} className="mb-8 flex justify-center">
-          <Wordmark name={t.brand} className="text-3xl" markClassName="size-10" />
-        </Link>
+        {showcaseEnabled ? (
+          <Link href={`/${locale}` as Route} className="mb-8 flex justify-center">
+            <Wordmark name={t.brand} className="text-3xl" markClassName="size-10" />
+          </Link>
+        ) : (
+          <div className="mb-8 flex justify-center">
+            <Wordmark name={t.brand} className="text-3xl" markClassName="size-10" />
+          </div>
+        )}
 
         <div className="rounded-2xl border border-foreground/10 bg-surface p-6 sm:p-8">
           <div className="mb-6 flex items-center gap-3">

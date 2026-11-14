@@ -26,6 +26,7 @@ import type { WebAppDictionary } from "@/i18n/dictionaries/web-app/fr";
 import { easeOutPapillon } from "@/lib/motion";
 import type { AccountDTO, Feature, ProfileDTO } from "@/lib/pronote/types";
 import { call, useApi } from "./api";
+import { showcaseEnabled } from "@/lib/showcase";
 import { useWebApp, WebAppContext } from "./context";
 import { Async, Dialog, ErrorBox, Loader, Wordmark } from "./ui";
 
@@ -135,13 +136,15 @@ export function WebAppShell({ t, locale, children }: { t: WebAppDictionary; loca
           </span>
         </span>
       </button>
-      <Link
-        href={`/${locale}` as Route}
-        className="flex items-center gap-3 rounded-lg px-4 py-2.5 font-medium text-foreground/70 transition-colors hover:bg-foreground/5"
-      >
-        <ArrowLeft className="size-5" />
-        {t.nav.backToSite}
-      </Link>
+      {showcaseEnabled && (
+        <Link
+          href={`/${locale}` as Route}
+          className="flex items-center gap-3 rounded-lg px-4 py-2.5 font-medium text-foreground/70 transition-colors hover:bg-foreground/5"
+        >
+          <ArrowLeft className="size-5" />
+          {t.nav.backToSite}
+        </Link>
+      )}
       <button
         type="button"
         onClick={logout}
