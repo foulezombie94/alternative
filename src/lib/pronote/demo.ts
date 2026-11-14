@@ -30,7 +30,7 @@ const homeworkContent = [
   ["Mathématiques", "<p>Faire les exercices 42 à 47 page 128. Détailler les calculs dans le cahier.</p>"],
   ["Français", "<p>Lire les chapitres 6 et 7 de <em>Germinal</em> et préparer trois citations commentées.</p>"],
   ["Histoire-Géographie", "<p>Réviser le chapitre sur la Révolution française et compléter la frise chronologique.</p>"],
-  ["Anglais", "<p>Apprendre le vocabulaire de la séquence « Living in London » et préparer l'expression orale.</p>"],
+  ["Anglais", "<p>Apprendre le vocabulaire de la séquence « Living in London » et faire le quiz : https://www.exemple.fr/quiz/london.</p>"],
   ["Physique-Chimie", "<p>Rédiger le compte rendu du TP sur la réfraction de la lumière.</p>"],
   ["Sciences de la vie et de la Terre", "<p>Terminer le schéma légendé de la cellule et revoir la fiche méthode.</p>"],
 ] as const;

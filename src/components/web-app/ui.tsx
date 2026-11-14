@@ -104,14 +104,53 @@ export function Async<T>({
   return children(state.data);
 }
 
+const urlPattern = /\b(?:https?:\/\/|www\.)[^\s<>"']+/gi;
+
+function linkify(html: string) {
+  if (typeof document === "undefined") return html;
+  const template = document.createElement("template");
+  template.innerHTML = html;
+
+  const walker = document.createTreeWalker(template.content, NodeFilter.SHOW_TEXT);
+  const texts: Text[] = [];
+  while (walker.nextNode()) {
+    const node = walker.currentNode as Text;
+    if (!node.parentElement?.closest("a") && urlPattern.test(node.data)) texts.push(node);
+    urlPattern.lastIndex = 0;
+  }
+
+  for (const node of texts) {
+    const fragment = document.createDocumentFragment();
+    let cursor = 0;
+    for (const match of node.data.matchAll(urlPattern)) {
+      const url = match[0].replace(/[.,;:!?)\]]+$/, "");
+      const start = match.index ?? 0;
+      fragment.append(node.data.slice(cursor, start));
+      const link = document.createElement("a");
+      link.href = url.startsWith("www.") ? `https://${url}` : url;
+      link.textContent = url;
+      fragment.append(link);
+      cursor = start + url.length;
+    }
+    fragment.append(node.data.slice(cursor));
+    node.replaceWith(fragment);
+  }
+
+  for (const link of template.content.querySelectorAll("a[href]")) {
+    link.setAttribute("target", "_blank");
+    link.setAttribute("rel", "noopener noreferrer");
+  }
+  return template.innerHTML;
+}
+
 export function Html({ html, className = "" }: { html: string; className?: string }) {
   const clean = useMemo(
-    () => DOMPurify.sanitize(html, { ADD_ATTR: ["target"], FORBID_TAGS: ["style", "form", "input"] }),
+    () => linkify(DOMPurify.sanitize(html, { ADD_ATTR: ["target"], FORBID_TAGS: ["style", "form", "input"] })),
     [html],
   );
   return (
     <div
-      className={`max-w-none break-words [&_a]:text-primary [&_a]:underline [&_li]:ml-5 [&_ol]:list-decimal [&_p]:mb-2 [&_ul]:list-disc ${className}`}
+      className={`max-w-none wrap-anywhere [&_a]:font-medium [&_a]:text-feature-news [&_a]:underline [&_a]:underline-offset-2 [&_li]:ml-5 [&_ol]:list-decimal [&_p]:mb-2 [&_ul]:list-disc ${className}`}
       dangerouslySetInnerHTML={{ __html: clean }}
     />
   );
