@@ -6,7 +6,7 @@ import type { HomeworkDTO } from "@/lib/pronote/types";
 import { call, useApi } from "./api";
 import { useWebApp } from "./context";
 import { addDays, endOfDay, formatDay, startOfWeek } from "./format";
-import { Async, Attachments, Html, PageHeader, SubjectDot, WeekNav } from "./ui";
+import { Async, Attachments, Html, PageHeader, SubjectDot, RangeToggle, WeekNav } from "./ui";
 
 const pageSize = 30;
 
@@ -87,20 +87,14 @@ export function WebAppHomework() {
   return (
     <>
       <PageHeader title={t.nav.homework}>
-        {!everything && <WeekNav week={week} onChange={setWeek} />}
-        <button
-          type="button"
-          aria-pressed={everything}
-          onClick={() => {
-            setEverything((value) => !value);
+        <RangeToggle
+          everything={everything}
+          onChange={(value) => {
+            setEverything(value);
             setShown(pageSize);
           }}
-          className={`rounded-md border px-4 py-2 font-medium transition-colors ${
-            everything ? "border-primary bg-primary text-white" : "border-foreground/10 bg-surface hover:border-foreground/30"
-          }`}
-        >
-          {t.contents.everything}
-        </button>
+        />
+        {!everything && <WeekNav week={week} onChange={setWeek} />}
       </PageHeader>
       <Async state={state} empty={t.homework.noHomework} isEmpty={(list) => !list.length}>
         {(list) => {

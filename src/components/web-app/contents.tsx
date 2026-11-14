@@ -6,7 +6,7 @@ import type { LessonContentDTO } from "@/lib/pronote/types";
 import { useApi } from "./api";
 import { useWebApp } from "./context";
 import { addDays, endOfDay, formatDay, formatTime, startOfWeek } from "./format";
-import { Async, Attachments, Empty, Html, PageHeader, SubjectDot, WeekNav } from "./ui";
+import { Async, Attachments, Empty, Html, PageHeader, SubjectDot, RangeToggle, WeekNav } from "./ui";
 
 const pageSize = 30;
 
@@ -65,20 +65,14 @@ export function WebAppContents() {
   return (
     <>
       <PageHeader title={t.nav.contents}>
-        {!everything && <WeekNav week={week} onChange={setWeek} />}
-        <button
-          type="button"
-          aria-pressed={everything}
-          onClick={() => {
-            setEverything((value) => !value);
+        <RangeToggle
+          everything={everything}
+          onChange={(value) => {
+            setEverything(value);
             setShown(pageSize);
           }}
-          className={`rounded-md border px-4 py-2 font-medium transition-colors ${
-            everything ? "border-primary bg-primary text-white" : "border-foreground/10 bg-surface hover:border-foreground/30"
-          }`}
-        >
-          {t.contents.everything}
-        </button>
+        />
+        {!everything && <WeekNav week={week} onChange={setWeek} />}
       </PageHeader>
 
       <div className="mb-5 flex flex-wrap items-center gap-2">
@@ -96,7 +90,7 @@ export function WebAppContents() {
             className={`${control} w-full pl-9 font-normal placeholder:text-foreground/40`}
           />
         </label>
-        <label>
+        <label className="max-sm:w-full">
           <span className="sr-only">{t.contents.subject}</span>
           <select
             value={activeSubject}
@@ -104,7 +98,7 @@ export function WebAppContents() {
               setSubject(event.target.value);
               setShown(pageSize);
             }}
-            className={`${control} max-w-full cursor-pointer`}
+            className={`${control} max-w-full cursor-pointer max-sm:w-full`}
           >
             <option value="">{t.contents.allSubjects}</option>
             {subjects.map((name) => (

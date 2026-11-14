@@ -55,14 +55,20 @@ function Courses() {
                     key={course.id}
                     aria-current={isLive(course, now) ? "time" : undefined}
                     className={`flex items-center gap-3 rounded-lg p-3 ${
-                      course.state === CourseState.Canceled ? "opacity-50" : ""
-                    } ${isLive(course, now) ? "bg-accent/5 ring-2 ring-accent" : "bg-background"}`}
+                      isLive(course, now) ? "bg-accent/5 ring-2 ring-accent" : "bg-background"
+                    }`}
                   >
-                    <span className="w-12 text-sm font-medium tabular-nums text-foreground/60">
+                    <span
+                      className={`w-12 text-sm font-medium tabular-nums text-foreground/60 ${
+                        course.state === CourseState.Canceled ? "opacity-50" : ""
+                      }`}
+                    >
                       {formatTime(course.from, locale)}
                     </span>
-                    <SubjectDot color={course.color} />
-                    <div className="min-w-0 flex-1">
+                    <span className={course.state === CourseState.Canceled ? "opacity-50" : ""}>
+                      <SubjectDot color={course.color} />
+                    </span>
+                    <div className={`min-w-0 flex-1 ${course.state === CourseState.Canceled ? "opacity-50" : ""}`}>
                       <p className={`truncate font-medium ${course.state === CourseState.Canceled ? "line-through" : ""}`}>
                         {course.subject}
                       </p>
@@ -72,7 +78,13 @@ function Courses() {
                       {isLive(course, now) && <LiveProgress from={course.from} to={course.to} now={now} />}
                     </div>
                     {course.statusText && (
-                      <span className="max-w-2/5 truncate rounded-md bg-feature-homework/10 px-2.5 py-1 text-xs font-medium text-feature-homework">
+                      <span
+                        className={`max-w-2/5 truncate rounded-md px-2.5 py-1 text-xs font-medium ${
+                          course.state === CourseState.Canceled
+                            ? "bg-feature-schedule/10 text-feature-schedule"
+                            : "bg-feature-homework/10 text-feature-homework"
+                        }`}
+                      >
                         {course.statusText}
                       </span>
                     )}

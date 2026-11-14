@@ -27,6 +27,7 @@ const webAppFr = {
     groupCommunication: "Communication",
   },
   contents: {
+    byWeek: "Par semaine",
     everything: "Toute l’année",
     search: "Rechercher dans les contenus",
     subject: "Matière",

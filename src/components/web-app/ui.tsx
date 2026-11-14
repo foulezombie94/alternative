@@ -13,8 +13,33 @@ import { addDays, formatDuration, formatShortDate, startOfWeek } from "./format"
 export function PageHeader({ title, children }: { title: string; children?: ReactNode }) {
   return (
     <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
-      <h1 className="text-3xl font-medium tracking-tight">{title}</h1>
-      {children && <div className="flex flex-wrap items-center gap-2">{children}</div>}
+      <h1 className="text-3xl font-medium tracking-tight max-lg:hidden">{title}</h1>
+      {children && <div className="flex flex-wrap items-center gap-2 max-sm:w-full">{children}</div>}
+    </div>
+  );
+}
+
+export function RangeToggle({ everything, onChange }: { everything: boolean; onChange: (everything: boolean) => void }) {
+  const { t } = useWebApp();
+  const options = [
+    { value: false, label: t.contents.byWeek },
+    { value: true, label: t.contents.everything },
+  ];
+  return (
+    <div role="group" className="grid grid-cols-2 rounded-lg border border-foreground/10 bg-surface p-1 max-sm:w-full">
+      {options.map((option) => (
+        <button
+          key={option.label}
+          type="button"
+          aria-pressed={everything === option.value}
+          onClick={() => onChange(option.value)}
+          className={`rounded-md px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-colors ${
+            everything === option.value ? "bg-primary text-white" : "text-foreground/60 hover:text-foreground"
+          }`}
+        >
+          {option.label}
+        </button>
+      ))}
     </div>
   );
 }
@@ -171,7 +196,7 @@ export function Attachments({ files }: { files: AttachmentDTO[] }) {
               rel="noreferrer"
               className="flex items-center gap-2 rounded-md bg-background px-3 py-1.5 text-sm font-medium transition-colors hover:bg-foreground/5"
             >
-              <Paper className="size-4 text-primary" />
+              <Paper className="size-4 shrink-0 text-primary" />
               {file.name}
             </a>
           </li>
@@ -181,11 +206,14 @@ export function Attachments({ files }: { files: AttachmentDTO[] }) {
   );
 }
 
+const panelWidth = 288;
+
 function WeekPicker({ week, onChange }: { week: Date; onChange: (week: Date) => void }) {
   const { t, locale } = useWebApp();
   const [open, setOpen] = useState(false);
   const [month, setMonth] = useState(() => new Date(week.getFullYear(), week.getMonth(), 1));
   const root = useRef<HTMLDivElement>(null);
+  const [alignRight, setAlignRight] = useState(false);
 
   useEffect(() => {
     if (!open) return;
@@ -221,6 +249,8 @@ function WeekPicker({ week, onChange }: { week: Date; onChange: (week: Date) => 
         title={t.common.pickDate}
         onClick={() => {
           setMonth(new Date(week.getFullYear(), week.getMonth(), 1));
+          const left = root.current?.getBoundingClientRect().left ?? 0;
+          setAlignRight(left + panelWidth > window.innerWidth - 16);
           setOpen((value) => !value);
         }}
         className={`flex size-10 items-center justify-center rounded-full border transition-colors ${
@@ -234,7 +264,9 @@ function WeekPicker({ week, onChange }: { week: Date; onChange: (week: Date) => 
         <div
           role="dialog"
           aria-label={t.common.pickDate}
-          className="absolute top-full right-0 z-40 mt-2 w-72 rounded-xl border border-foreground/10 bg-surface p-3 shadow-xl sm:right-auto sm:left-0"
+          className={`fixed inset-x-0 top-24 z-40 mx-auto w-72 rounded-xl border border-foreground/10 bg-surface p-3 shadow-xl sm:absolute sm:inset-x-auto sm:top-full sm:mx-0 sm:mt-2 ${
+            alignRight ? "sm:right-0" : "sm:left-0"
+          }`}
         >
           <div className="mb-2 flex items-center justify-between">
             <button
@@ -327,7 +359,7 @@ export function WeekNav({
   const button = "flex size-10 items-center justify-center rounded-full border border-foreground/10 bg-surface transition-colors hover:bg-foreground/10";
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-2 max-sm:w-full max-sm:justify-between">
       {calendar && <WeekPicker week={week} onChange={onChange} />}
       <button type="button" aria-label={t.common.previousWeek} className={button} onClick={() => onChange(addDays(week, -7))}>
         <ChevronLeft className="size-5" />

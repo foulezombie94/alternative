@@ -29,6 +29,7 @@ const webAppEn: WebAppDictionary = {
     groupCommunication: "Communication",
   },
   contents: {
+    byWeek: "By week",
     everything: "Whole year",
     search: "Search lesson content",
     subject: "Subject",
