@@ -754,6 +754,7 @@ export class PronoteService implements SchoolService {
           date: iso(item.creationDate ?? new Date()),
           content: newsContent(item),
           read: Boolean(item.read),
+          survey: item.is === "survey",
           needsAcknowledgement: Boolean(information?.needToAcknowledge),
           acknowledged: Boolean(information?.acknowledged),
           attachments: [

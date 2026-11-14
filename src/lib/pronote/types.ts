@@ -190,6 +190,7 @@ export type NewsDTO = {
   date: string;
   content: string;
   read: boolean;
+  survey: boolean;
   needsAcknowledgement: boolean;
   acknowledged: boolean;
   attachments: AttachmentDTO[];

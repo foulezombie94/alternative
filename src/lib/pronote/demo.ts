@@ -472,6 +472,7 @@ export class DemoService implements SchoolService {
         content,
         date: at(addDays(new Date(), -index * 3), 10, 15).toISOString(),
         read: index > 1,
+        survey: index === 3,
         needsAcknowledgement: index === 0,
         acknowledged: this.acknowledged.has(id),
         attachments: [],
