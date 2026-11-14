@@ -63,7 +63,7 @@ function HomeworkCard({ homework, onToggle }: { homework: HomeworkDTO; onToggle:
 }
 
 export function WebAppHomework() {
-  const { t, locale } = useWebApp();
+  const { t } = useWebApp();
   const [week, setWeek] = useState(() => startOfWeek(new Date()));
   const range = useMemo(
     () => ({ from: week.toISOString(), to: endOfDay(addDays(week, 6)).toISOString() }),
