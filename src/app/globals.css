@@ -112,6 +112,10 @@
   color: var(--color-foreground);
 }
 
+@utility h-reader {
+  max-height: calc(100dvh - 3rem);
+}
+
 @utility scrollbar-none {
   scrollbar-width: none;
 }

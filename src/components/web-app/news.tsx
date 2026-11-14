@@ -270,6 +270,8 @@ export function WebAppNews() {
                             onSelect={() => {
                               setSelectedId(item.id);
                               setOpened(true);
+                              document.getElementById("news-reader")?.scrollTo({ top: 0 });
+                              if (window.matchMedia("(max-width: 63.99rem)").matches) window.scrollTo({ top: 0 });
                             }}
                           />
                         </li>
@@ -279,13 +281,17 @@ export function WebAppNews() {
                 ))}
               </div>
               <article
-                className={`rounded-xl border border-foreground/10 bg-surface p-5 sm:p-8 lg:sticky lg:top-6 lg:col-span-3 ${
+                id="news-reader"
+                className={`rounded-xl border border-foreground/10 bg-surface p-5 sm:p-8 lg:sticky lg:top-6 lg:col-span-3 lg:h-reader lg:overflow-y-auto lg:overscroll-contain ${
                   opened ? "" : "max-lg:hidden"
                 }`}
               >
                 <button
                   type="button"
-                  onClick={() => setOpened(false)}
+                  onClick={() => {
+                    setOpened(false);
+                    window.scrollTo({ top: 0 });
+                  }}
                   className="mb-5 flex items-center gap-1 text-sm font-medium text-foreground/60 transition-colors hover:text-foreground lg:hidden"
                 >
                   <ChevronLeft className="size-4" />
