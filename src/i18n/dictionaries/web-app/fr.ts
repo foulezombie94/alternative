@@ -114,6 +114,8 @@ const webAppFr = {
   },
   common: {
     pickDate: "Choisir une date",
+    previousMonth: "Mois précédent",
+    nextMonth: "Mois suivant",
     loading: "Chargement…",
     empty: "Rien à afficher pour le moment.",
     previousWeek: "Semaine précédente",

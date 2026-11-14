@@ -181,6 +181,138 @@ export function Attachments({ files }: { files: AttachmentDTO[] }) {
   );
 }
 
+function WeekPicker({ week, onChange }: { week: Date; onChange: (week: Date) => void }) {
+  const { t, locale } = useWebApp();
+  const [open, setOpen] = useState(false);
+  const [month, setMonth] = useState(() => new Date(week.getFullYear(), week.getMonth(), 1));
+  const root = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    const onPointer = (event: PointerEvent) => {
+      if (!root.current?.contains(event.target as Node)) setOpen(false);
+    };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("pointerdown", onPointer);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onPointer);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [open]);
+
+  const today = new Date();
+  const first = startOfWeek(month);
+  const weeks = Array.from({ length: 6 }, (_, row) => Array.from({ length: 7 }, (_, column) => addDays(first, row * 7 + column))).filter(
+    (days, row) => row < 5 || days[0].getMonth() === month.getMonth(),
+  );
+  const same = (a: Date, b: Date) => a.toDateString() === b.toDateString();
+  const arrow = "flex size-8 items-center justify-center rounded-md transition-colors hover:bg-foreground/5";
+
+  return (
+    <div ref={root} className="relative">
+      <button
+        type="button"
+        aria-label={t.common.pickDate}
+        aria-haspopup="dialog"
+        aria-expanded={open}
+        title={t.common.pickDate}
+        onClick={() => {
+          setMonth(new Date(week.getFullYear(), week.getMonth(), 1));
+          setOpen((value) => !value);
+        }}
+        className={`flex size-10 items-center justify-center rounded-full border transition-colors ${
+          open ? "border-primary bg-primary text-white" : "border-foreground/10 bg-surface hover:bg-foreground/10"
+        }`}
+      >
+        <Calendar className="size-5" />
+      </button>
+
+      {open && (
+        <div
+          role="dialog"
+          aria-label={t.common.pickDate}
+          className="absolute top-full right-0 z-40 mt-2 w-72 rounded-xl border border-foreground/10 bg-surface p-3 shadow-xl sm:right-auto sm:left-0"
+        >
+          <div className="mb-2 flex items-center justify-between">
+            <button
+              type="button"
+              aria-label={t.common.previousMonth}
+              className={arrow}
+              onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() - 1, 1))}
+            >
+              <ChevronLeft className="size-4" />
+            </button>
+            <p className="font-medium first-letter:uppercase">
+              {month.toLocaleDateString(locale, { month: "long", year: "numeric" })}
+            </p>
+            <button
+              type="button"
+              aria-label={t.common.nextMonth}
+              className={arrow}
+              onClick={() => setMonth(new Date(month.getFullYear(), month.getMonth() + 1, 1))}
+            >
+              <ChevronRight className="size-4" />
+            </button>
+          </div>
+
+          <div className="grid grid-cols-7 pb-1 text-center font-mono text-xs tracking-widest text-foreground/40 uppercase">
+            {weeks[0].map((day) => (
+              <span key={day.getDay()}>{day.toLocaleDateString(locale, { weekday: "narrow" })}</span>
+            ))}
+          </div>
+
+          <div className="flex flex-col gap-0.5">
+            {weeks.map((days) => {
+              const selected = same(days[0], week);
+              return (
+                <div key={days[0].toISOString()} className={`grid grid-cols-7 rounded-md ${selected ? "bg-primary text-white" : ""}`}>
+                  {days.map((day) => {
+                    const outside = day.getMonth() !== month.getMonth();
+                    const isToday = same(day, today);
+                    return (
+                      <button
+                        key={day.toISOString()}
+                        type="button"
+                        aria-label={day.toLocaleDateString(locale, { weekday: "long", day: "numeric", month: "long", year: "numeric" })}
+                        aria-current={isToday ? "date" : undefined}
+                        onClick={() => {
+                          onChange(startOfWeek(day));
+                          setOpen(false);
+                        }}
+                        className={`flex h-9 items-center justify-center rounded-md text-sm tabular-nums transition-colors ${
+                          selected ? "hover:bg-white/15" : "hover:bg-foreground/5"
+                        } ${outside ? "opacity-35" : ""} ${isToday ? "font-semibold" : ""}`}
+                      >
+                        <span className={isToday ? "flex size-7 items-center justify-center rounded-full bg-accent text-white" : ""}>
+                          {day.getDate()}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              onChange(startOfWeek(new Date()));
+              setOpen(false);
+            }}
+            className="mt-2 w-full rounded-md border border-foreground/10 px-3 py-1.5 text-sm font-medium transition-colors hover:border-foreground/30"
+          >
+            {t.common.thisWeek}
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function WeekNav({
   week,
   onChange,
@@ -191,44 +323,12 @@ export function WeekNav({
   calendar?: boolean;
 }) {
   const { t, locale } = useWebApp();
-  const picker = useRef<HTMLInputElement>(null);
-  const pad = (value: number) => String(value).padStart(2, "0");
-  const inputValue = `${week.getFullYear()}-${pad(week.getMonth() + 1)}-${pad(week.getDate())}`;
   const current = startOfWeek(new Date()).getTime() === week.getTime();
   const button = "flex size-10 items-center justify-center rounded-full border border-foreground/10 bg-surface transition-colors hover:bg-foreground/10";
 
   return (
     <div className="flex items-center gap-2">
-      {calendar && (
-        <span className="relative">
-          <button
-            type="button"
-            aria-label={t.common.pickDate}
-            title={t.common.pickDate}
-            className={button}
-            onClick={() => {
-              const input = picker.current;
-              if (!input) return;
-              if (typeof input.showPicker === "function") input.showPicker();
-              else input.focus();
-            }}
-          >
-            <Calendar className="size-5" />
-          </button>
-          <input
-            ref={picker}
-            type="date"
-            tabIndex={-1}
-            aria-hidden
-            value={inputValue}
-            onChange={(event) => {
-              const [year, month, day] = event.target.value.split("-").map(Number);
-              if (year && month && day) onChange(startOfWeek(new Date(year, month - 1, day)));
-            }}
-            className="pointer-events-none absolute bottom-0 left-0 size-0 opacity-0"
-          />
-        </span>
-      )}
+      {calendar && <WeekPicker week={week} onChange={onChange} />}
       <button type="button" aria-label={t.common.previousWeek} className={button} onClick={() => onChange(addDays(week, -7))}>
         <ChevronLeft className="size-5" />
       </button>

@@ -116,6 +116,8 @@ const webAppEn: WebAppDictionary = {
   },
   common: {
     pickDate: "Pick a date",
+    previousMonth: "Previous month",
+    nextMonth: "Next month",
     loading: "Loading…",
     empty: "Nothing to show yet.",
     previousWeek: "Previous week",
