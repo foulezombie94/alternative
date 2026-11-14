@@ -168,14 +168,30 @@ function linkify(html: string) {
   return template.innerHTML;
 }
 
+const blank = String.raw`(?:\s|&nbsp;|\u00a0|<br\s*\/?>)`;
+const emptyEdges = new RegExp(
+  String.raw`(?<=^(?:<(?:div|p|span|font)\b[^>]*>)*)(?:${blank}|<(p|div|span|font)\b[^>]*>${blank}*<\/\1>)+|(?:${blank}|<(p|div|span|font)\b[^>]*>${blank}*<\/\2>)+(?=(?:<\/(?:div|p|span|font)>)*$)`,
+  "gi",
+);
+
+function trimEmpty(html: string) {
+  let previous = "";
+  let current = html;
+  while (current !== previous) {
+    previous = current;
+    current = current.replace(emptyEdges, "");
+  }
+  return current;
+}
+
 export function Html({ html, className = "" }: { html: string; className?: string }) {
   const clean = useMemo(
-    () => linkify(DOMPurify.sanitize(html, { ADD_ATTR: ["target"], FORBID_TAGS: ["style", "form", "input"] })),
+    () => linkify(trimEmpty(DOMPurify.sanitize(html, { ADD_ATTR: ["target"], FORBID_TAGS: ["style", "form", "input"] }))),
     [html],
   );
   return (
     <div
-      className={`max-w-none wrap-anywhere [&_a]:font-medium [&_a]:text-feature-news [&_a]:underline [&_a]:underline-offset-2 [&_li]:ml-5 [&_ol]:list-decimal [&_p]:mb-2 [&_ul]:list-disc ${className}`}
+      className={`max-w-none wrap-anywhere [&_a]:font-medium [&_a]:text-feature-news [&_a]:underline [&_a]:underline-offset-2 [&_li]:ml-5 [&_ol]:list-decimal [&_p]:mb-2 [&_p:last-child]:mb-0 [&_ul]:list-disc ${className}`}
       dangerouslySetInnerHTML={{ __html: clean }}
     />
   );

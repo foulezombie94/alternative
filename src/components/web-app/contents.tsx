@@ -119,7 +119,7 @@ export function WebAppContents() {
         {() =>
           filtered.length ? (
             <>
-              <div className="grid grid-cols-2 gap-2 sm:gap-3 xl:grid-cols-3">
+              <div className="grid grid-cols-2 items-start gap-2 sm:gap-3 xl:grid-cols-3">
                 {filtered.slice(0, shown).map((lesson) => (
                   <article key={lesson.id} className="min-w-0 rounded-xl border border-foreground/10 bg-surface p-3 text-sm sm:p-4 sm:text-base">
                     <p className="mb-1 font-mono text-xs tracking-widest text-foreground/50 uppercase">
