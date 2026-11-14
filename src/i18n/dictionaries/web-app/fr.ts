@@ -18,6 +18,18 @@ const webAppFr = {
     demoBadge: "Mode démo",
     backToSite: "Retour au site",
   },
+  account: {
+    title: "Mon compte",
+    class: "Classe",
+    school: "Établissement",
+    email: "E-mail",
+    phone: "Téléphone",
+    address: "Adresse",
+    ine: "Numéro INE",
+    delegate: "Délégué de classe",
+    unavailable: "Pronote ne donne pas accès aux informations personnelles de ce compte.",
+    open: "Voir mon compte",
+  },
   login: {
     title: "Connexion à Pronote",
     subtitle: "Tes identifiants passent uniquement par le serveur qui tourne sur ton ordinateur.",

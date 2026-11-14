@@ -1,4 +1,5 @@
 import type {
+  AccountDTO,
   AttendanceDTO,
   ChatDTO,
   ChatThreadDTO,
@@ -15,6 +16,7 @@ import type {
 
 export interface SchoolService {
   profile(): Promise<ProfileDTO>;
+  account(): Promise<AccountDTO>;
   timetable(from: Date, to: Date): Promise<CourseDTO[]>;
   holidays(): Promise<HolidayDTO[]>;
   courseResources(resourceId: string): Promise<CourseResourceDTO[]>;

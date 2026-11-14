@@ -153,6 +153,20 @@ export class DemoService implements SchoolService {
     };
   }
 
+  async account() {
+    return {
+      name: "MARTIN Camille",
+      className: "Seconde 2",
+      school: "Lycée de démonstration",
+      delegate: true,
+      detailsAvailable: true,
+      email: "camille.martin@exemple.fr",
+      phone: "+33 6 00 00 00 00",
+      address: "12 rue des Écoles\n75005 Paris\nFrance",
+      ine: "000000000AA",
+    };
+  }
+
   async holidays() {
     return demoHolidays().map((holiday) => ({
       name: holiday.name,

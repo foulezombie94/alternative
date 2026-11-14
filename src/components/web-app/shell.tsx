@@ -21,10 +21,10 @@ import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react
 import type { Locale } from "@/i18n/config";
 import type { WebAppDictionary } from "@/i18n/dictionaries/web-app/fr";
 import { easeOutPapillon } from "@/lib/motion";
-import type { Feature, ProfileDTO } from "@/lib/pronote/types";
+import type { AccountDTO, Feature, ProfileDTO } from "@/lib/pronote/types";
 import { call, useApi } from "./api";
-import { WebAppContext } from "./context";
-import { ErrorBox, Loader, Wordmark } from "./ui";
+import { useWebApp, WebAppContext } from "./context";
+import { Async, Dialog, ErrorBox, Loader, Wordmark } from "./ui";
 
 type Icon = typeof Home;
 
@@ -41,6 +41,7 @@ const sections: { path: string; key: keyof WebAppDictionary["nav"]; icon: Icon; 
 export function WebAppShell({ t, locale, children }: { t: WebAppDictionary; locale: Locale; children: ReactNode }) {
   const pathname = usePathname();
   const profile = useApi<ProfileDTO>("profile");
+  const [accountOpen, setAccountOpen] = useState(false);
   const base = `/${locale}/app`;
 
   const sessionLost = useCallback(() => window.location.replace(`${base}/login`), [base]);
@@ -103,15 +104,23 @@ export function WebAppShell({ t, locale, children }: { t: WebAppDictionary; loca
 
   const account = (
     <>
-      <div className="mb-2 flex items-center gap-3 rounded-lg border border-foreground/10 bg-surface p-3">
+      <button
+        type="button"
+        aria-label={t.account.open}
+        aria-haspopup="dialog"
+        onClick={() => setAccountOpen(true)}
+        className="mb-2 flex items-center gap-3 rounded-lg border border-foreground/10 bg-surface p-3 text-left transition-colors hover:border-foreground/30"
+      >
         <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary font-semibold text-white">
           {initials}
         </span>
-        <div className="min-w-0">
-          <p className="truncate font-semibold">{user.name}</p>
-          <p className="truncate text-sm text-foreground/50">{[user.className, user.school].filter(Boolean).join(" · ")}</p>
-        </div>
-      </div>
+        <span className="min-w-0">
+          <span className="block truncate font-semibold">{user.name}</span>
+          <span className="block truncate text-sm text-foreground/50">
+            {[user.className, user.school].filter(Boolean).join(" · ")}
+          </span>
+        </span>
+      </button>
       <Link
         href={`/${locale}` as Route}
         className="flex items-center gap-3 rounded-lg px-4 py-2.5 font-medium text-foreground/70 transition-colors hover:bg-foreground/5"
@@ -160,11 +169,55 @@ export function WebAppShell({ t, locale, children }: { t: WebAppDictionary; loca
           account={account}
         />
 
+        {accountOpen && <AccountDialog onClose={() => setAccountOpen(false)} />}
+
         <main className="min-w-0 flex-1 px-5 pt-4 pb-16 lg:px-10 lg:pt-10">
           <div className={pathname.endsWith("/timetable") ? "w-full" : "mx-auto max-w-6xl"}>{children}</div>
         </main>
       </div>
     </WebAppContext>
+  );
+}
+
+function AccountDialog({ onClose }: { onClose: () => void }) {
+  const { t } = useWebApp();
+  const state = useApi<AccountDTO>("account");
+
+  return (
+    <Dialog title={t.account.title} onClose={onClose}>
+      <Async state={state}>
+        {(data) => {
+          const rows = [
+            [t.account.class, data.className],
+            [t.account.school, data.school],
+            [t.account.email, data.email],
+            [t.account.phone, data.phone],
+            [t.account.address, data.address],
+            [t.account.ine, data.ine],
+          ].filter((row): row is [string, string] => Boolean(row[1]));
+
+          return (
+            <>
+              <p className="text-xl font-semibold">{data.name}</p>
+              {data.delegate && (
+                <p className="mt-2 inline-block rounded-md bg-accent/10 px-2.5 py-0.5 text-xs font-medium text-accent">
+                  {t.account.delegate}
+                </p>
+              )}
+              <dl className="mt-5 flex flex-col divide-y divide-foreground/10 border-y border-foreground/10">
+                {rows.map(([label, value]) => (
+                  <div key={label} className="flex gap-4 py-3">
+                    <dt className="w-32 shrink-0 font-mono text-xs tracking-widest text-foreground/50 uppercase">{label}</dt>
+                    <dd className="min-w-0 font-medium wrap-anywhere whitespace-pre-line">{value}</dd>
+                  </div>
+                ))}
+              </dl>
+              {!data.detailsAvailable && <p className="mt-4 text-sm text-foreground/50">{t.account.unavailable}</p>}
+            </>
+          );
+        }}
+      </Async>
+    </Dialog>
   );
 }
 

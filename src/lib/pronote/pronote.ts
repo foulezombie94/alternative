@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import {
+  account,
   AccountKind,
   AssignmentReturnKind,
   assignmentStatus,
@@ -321,6 +322,36 @@ export class PronoteService implements SchoolService {
       demo: false,
       features: [...available],
     };
+  }
+
+  account() {
+    return this.run(async (handle) => {
+      const user = handle.userResource;
+      const base = {
+        name: user.name,
+        className: user.className,
+        school: user.establishmentName,
+        delegate: user.isDelegate,
+      };
+      try {
+        const details = await account(handle);
+        const address = [...details.address, [details.postalCode, details.city].filter(Boolean).join(" "), details.country]
+          .map((line) => line?.trim())
+          .filter(Boolean)
+          .join("\n");
+        return {
+          ...base,
+          detailsAvailable: true,
+          email: details.email || undefined,
+          phone: details.phone || undefined,
+          address: address || undefined,
+          ine: details.INE || undefined,
+        };
+      } catch (error) {
+        if (error instanceof SessionExpiredError) throw error;
+        return { ...base, detailsAvailable: false };
+      }
+    });
   }
 
   async holidays() {

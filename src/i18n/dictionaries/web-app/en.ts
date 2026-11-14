@@ -20,6 +20,18 @@ const webAppEn: WebAppDictionary = {
     demoBadge: "Demo mode",
     backToSite: "Back to the website",
   },
+  account: {
+    title: "My account",
+    class: "Class",
+    school: "School",
+    email: "Email",
+    phone: "Phone",
+    address: "Address",
+    ine: "INE number",
+    delegate: "Class representative",
+    unavailable: "Pronote does not give access to this account’s personal information.",
+    open: "View my account",
+  },
   login: {
     title: "Sign in to Pronote",
     subtitle: "Your credentials only go through the server running on your own computer.",

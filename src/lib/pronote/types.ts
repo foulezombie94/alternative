@@ -15,6 +15,18 @@ export type ProfileDTO = {
   features: Feature[];
 };
 
+export type AccountDTO = {
+  name: string;
+  className?: string;
+  school: string;
+  delegate: boolean;
+  detailsAvailable: boolean;
+  email?: string;
+  phone?: string;
+  address?: string;
+  ine?: string;
+};
+
 export const CourseKind = { Lesson: "lesson", Detention: "detention", Activity: "activity" } as const;
 export type CourseKind = (typeof CourseKind)[keyof typeof CourseKind];
 

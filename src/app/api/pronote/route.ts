@@ -157,6 +157,8 @@ async function runAction(service: SchoolService, action: string, body: Body): Pr
   switch (action) {
     case "profile":
       return service.profile();
+    case "account":
+      return service.account();
     case "timetable":
       return service.timetable(date(body, "from"), date(body, "to"));
     case "holidays":
