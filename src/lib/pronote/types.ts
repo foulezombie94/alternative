@@ -132,6 +132,7 @@ export type ReportCardDTO = {
   message?: string;
   subjects: ReportSubjectDTO[];
   overall: { name: string; value: string }[];
+  raw?: string;
 };
 
 export type SkillDTO = { name: string; domain: string; level: string; abbreviation: string };

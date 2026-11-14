@@ -560,6 +560,10 @@ export class PronoteService implements SchoolService {
           assessments: (entry.assessments ?? []).filter(Boolean),
         })),
         overall: (report.overallAssessments ?? []).filter((entry) => entry.value),
+        raw:
+          report.message || report.subjects?.length
+            ? undefined
+            : JSON.stringify((report as unknown as { _raw?: unknown })._raw ?? null, null, 2).slice(0, 20000),
       };
     });
   }

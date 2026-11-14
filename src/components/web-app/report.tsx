@@ -35,6 +35,14 @@ export function WebAppReport() {
               <p className="mb-4 rounded-xl border border-foreground/10 bg-surface p-5 text-center font-medium">{data.message}</p>
             )}
             {!data.message && !data.subjects.length && <Empty>{t.report.none}</Empty>}
+            {data.raw && data.raw !== "{}" && data.raw !== "null" && (
+              <details className="mx-auto max-w-2xl text-sm text-foreground/50">
+                <summary className="cursor-pointer text-center underline">{t.news.diagnostic}</summary>
+                <pre className="mt-2 max-h-96 overflow-auto rounded-lg border border-foreground/10 bg-surface p-3 text-xs whitespace-pre-wrap select-all">
+                  {data.raw}
+                </pre>
+              </details>
+            )}
             {data.subjects.length > 0 && (
               <ul className="overflow-hidden rounded-xl border border-foreground/10 bg-surface">
                 {data.subjects.map((subject, index) => (
