@@ -5,11 +5,14 @@ import type {
   ChatThreadDTO,
   CourseDTO,
   CourseResourceDTO,
+  EvaluationDTO,
   GradesDTO,
   HolidayDTO,
+  LessonContentDTO,
   HomeworkDTO,
   NewsDTO,
   PeriodsDTO,
+  ReportCardDTO,
   ProfileDTO,
   RecipientDTO,
 } from "./types";
@@ -24,6 +27,11 @@ export interface SchoolService {
   setHomeworkDone(id: string, done: boolean): Promise<void>;
   gradePeriods(): Promise<PeriodsDTO>;
   grades(periodId: string): Promise<GradesDTO>;
+  lessonContents(from: Date, to: Date): Promise<LessonContentDTO[]>;
+  reportCardPeriods(): Promise<PeriodsDTO>;
+  reportCard(periodId: string): Promise<ReportCardDTO>;
+  evaluationPeriods(): Promise<PeriodsDTO>;
+  evaluations(periodId: string): Promise<EvaluationDTO[]>;
   attendancePeriods(): Promise<PeriodsDTO>;
   attendance(periodId: string): Promise<AttendanceDTO>;
   news(): Promise<NewsDTO[]>;

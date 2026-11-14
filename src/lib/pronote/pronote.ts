@@ -12,10 +12,12 @@ import {
   discussionMessages,
   discussions,
   discussionSendMessage,
+  evaluations,
   EntityKind,
   finishLoginManually,
   type GradeValue,
   GradeKind,
+  gradebook,
   gradesOverview,
   loginCredentials,
   loginQrCode,
@@ -34,6 +36,7 @@ import {
   parseTimetable,
   type RefreshInformation,
   resource,
+  resourcesFromIntervals,
   SecurityError,
   securitySave,
   securitySource,
@@ -66,6 +69,9 @@ const tabFeatures: Partial<Record<TabLocation, Feature>> = {
   [TabLocation.Notebook]: "attendance",
   [TabLocation.News]: "news",
   [TabLocation.Discussions]: "chat",
+  [TabLocation.Resources]: "contents",
+  [TabLocation.Gradebook]: "report",
+  [TabLocation.Evaluations]: "evaluations",
 };
 
 const canceledStatuses = new Set([
@@ -504,6 +510,84 @@ export class PronoteService implements SchoolService {
         classOverall: score(overview.classAverage),
         subjects,
       };
+    });
+  }
+
+  lessonContents(from: Date, to: Date) {
+    return this.run(async (handle) => {
+      const range = clampRange(handle, from, to);
+      if (!range) return [];
+      const lessons = await resourcesFromIntervals(handle, range[0], range[1]);
+      return lessons
+        .filter((lesson) => lesson.contents.length > 0)
+        .map((lesson) => ({
+          id: lesson.id,
+          subject: lesson.subject.name,
+          color: lesson.backgroundColor,
+          date: iso(lesson.startDate),
+          teachers: lesson.teachers ?? [],
+          contents: lesson.contents.map((content) => ({
+            title: content.title,
+            description: content.description,
+            attachments: (content.files ?? []).map(attachment),
+          })),
+        }))
+        .sort((a, b) => b.date.localeCompare(a.date));
+    });
+  }
+
+  async reportCardPeriods() {
+    return this.periods(TabLocation.Gradebook);
+  }
+
+  reportCard(periodId: string) {
+    return this.run(async (handle) => {
+      const report = await gradebook(handle, this.period(TabLocation.Gradebook, periodId));
+      const number = (value: number | undefined): Score => ({
+        value: typeof value === "number" && Number.isFinite(value) ? value : null,
+      });
+      return {
+        message: report.message || undefined,
+        subjects: (report.subjects ?? []).map((entry) => ({
+          name: entry.subject.name,
+          group: entry.subjectGroup || undefined,
+          teachers: entry.teachers ?? [],
+          coefficient: entry.coef,
+          average: number(entry.averages?.student),
+          classAverage: number(entry.averages?.classOverall),
+          min: number(entry.averages?.min),
+          max: number(entry.averages?.max),
+          assessments: (entry.assessments ?? []).filter(Boolean),
+        })),
+        overall: (report.overallAssessments ?? []).filter((entry) => entry.value),
+      };
+    });
+  }
+
+  async evaluationPeriods() {
+    return this.periods(TabLocation.Evaluations);
+  }
+
+  evaluations(periodId: string) {
+    return this.run(async (handle) => {
+      const list = await evaluations(handle, this.period(TabLocation.Evaluations, periodId));
+      return list
+        .map((evaluation) => ({
+          id: evaluation.id,
+          name: evaluation.name,
+          subject: evaluation.subject.name,
+          teacher: evaluation.teacher,
+          date: iso(evaluation.date),
+          description: evaluation.description,
+          coefficient: evaluation.coefficient,
+          skills: (evaluation.skills ?? []).map((skill) => ({
+            name: skill.itemName ?? skill.domainName,
+            domain: skill.domainName,
+            level: skill.level,
+            abbreviation: skill.abbreviation,
+          })),
+        }))
+        .sort((a, b) => b.date.localeCompare(a.date));
     });
   }
 

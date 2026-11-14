@@ -1,10 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { Fragment, useMemo, useState } from "react";
 import { type CourseDTO, CourseKind, type CourseResourceDTO, CourseState, type HolidayDTO } from "@/lib/pronote/types";
 import { useApi } from "./api";
 import { useWebApp } from "./context";
-import { addDays, capitalize, dayKey, endOfDay, formatDay, formatTime, sameDay, startOfWeek } from "./format";
+import { addDays, capitalize, dayKey, endOfDay, formatDay, formatDuration, formatTime, sameDay, startOfWeek } from "./format";
 import { Async, Attachments, Dialog, Empty, Html, isLive, LiveProgress, PageHeader, useNow, WeekNav } from "./ui";
 
 const columnClasses: Record<number, string> = {
@@ -12,6 +12,50 @@ const columnClasses: Record<number, string> = {
   6: "lg:grid-cols-6",
   7: "lg:grid-cols-7",
 };
+
+type Gap = { kind: "lunch" | "free"; from: Date; to: Date; minutes: number };
+
+const lunchWindow = { start: 11.5, end: 14 };
+const shortestLunch = 30;
+const shortestFreePeriod = 45;
+
+function gapsBefore(courses: CourseDTO[]) {
+  const gaps = new Map<string, Gap>();
+  let end: Date | null = null;
+  let lunchFound = false;
+
+  for (const course of courses) {
+    const from = new Date(course.from);
+    if (end && from > end) {
+      const minutes = Math.round((from.getTime() - end.getTime()) / 60000);
+      const startHour = end.getHours() + end.getMinutes() / 60;
+      const endHour = from.getHours() + from.getMinutes() / 60;
+      const overLunch = startHour < lunchWindow.end && endHour > lunchWindow.start;
+      if (overLunch && !lunchFound && minutes >= shortestLunch) {
+        lunchFound = true;
+        gaps.set(course.id, { kind: "lunch", from: end, to: from, minutes });
+      } else if (minutes >= shortestFreePeriod) {
+        gaps.set(course.id, { kind: "free", from: end, to: from, minutes });
+      }
+    }
+    const to = new Date(course.to);
+    if (!end || to > end) end = to;
+  }
+  return gaps;
+}
+
+function GapRow({ gap }: { gap: Gap }) {
+  const { t, locale } = useWebApp();
+  return (
+    <li className="flex flex-col rounded-lg border border-dashed border-foreground/15 px-3 py-2 text-sm text-foreground/50">
+      <span className="font-medium">{gap.kind === "lunch" ? t.timetable.lunch : t.timetable.freePeriod}</span>
+      <span className="text-xs tabular-nums">
+        {formatTime(gap.from, locale)} – {formatTime(gap.to, locale)} ·{" "}
+        {formatDuration(gap.minutes, { hours: t.common.hours, minutes: t.common.minutes })}
+      </span>
+    </li>
+  );
+}
 
 function holidayOn(holidays: HolidayDTO[] | undefined, day: Date) {
   const time = day.getTime();
@@ -151,6 +195,7 @@ export function WebAppTimetable() {
                 const today = sameDay(day, new Date());
                 const holiday = weekHolidays[dayIndex];
                 const dayOff = holiday && !list.some((course) => course.state !== CourseState.Canceled);
+                const gaps = gapsBefore(list);
                 return (
                   <section
                     key={dayKey(day)}
@@ -165,8 +210,11 @@ export function WebAppTimetable() {
                       {list.map((course) => {
                         const canceled = course.state === CourseState.Canceled;
                         const live = isLive(course, now);
+                        const gap = gaps.get(course.id);
                         return (
-                          <li key={course.id}>
+                          <Fragment key={course.id}>
+                          {gap && <GapRow gap={gap} />}
+                          <li>
                             <button
                               type="button"
                               onClick={() => setSelected(course)}
@@ -197,6 +245,7 @@ export function WebAppTimetable() {
                               </span>
                             </button>
                           </li>
+                          </Fragment>
                         );
                       })}
                     </ul>

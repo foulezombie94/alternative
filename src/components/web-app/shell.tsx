@@ -2,6 +2,7 @@
 
 import {
   ArrowLeft,
+  Bookmark,
   Calendar,
   Chair,
   Cross,
@@ -10,6 +11,8 @@ import {
   Logout,
   Menu,
   Newspaper,
+  Paper,
+  Star,
   Tasks,
   TextBubble,
 } from "@getpapillon/papicons";
@@ -17,7 +20,7 @@ import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
+import { Fragment, type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import type { Locale } from "@/i18n/config";
 import type { WebAppDictionary } from "@/i18n/dictionaries/web-app/fr";
 import { easeOutPapillon } from "@/lib/motion";
@@ -28,14 +31,19 @@ import { Async, Dialog, ErrorBox, Loader, Wordmark } from "./ui";
 
 type Icon = typeof Home;
 
-const sections: { path: string; key: keyof WebAppDictionary["nav"]; icon: Icon; feature?: Feature }[] = [
+type NavKey = keyof WebAppDictionary["nav"];
+
+const sections: { path: string; key: NavKey; icon: Icon; feature?: Feature; group?: NavKey }[] = [
   { path: "", key: "home", icon: Home },
-  { path: "/timetable", key: "timetable", icon: Calendar, feature: "timetable" },
-  { path: "/homework", key: "homework", icon: Tasks, feature: "homework" },
-  { path: "/grades", key: "grades", icon: Grades, feature: "grades" },
-  { path: "/attendance", key: "attendance", icon: Chair, feature: "attendance" },
-  { path: "/news", key: "news", icon: Newspaper, feature: "news" },
-  { path: "/messages", key: "messages", icon: TextBubble, feature: "chat" },
+  { path: "/contents", key: "contents", icon: Paper, feature: "contents", group: "groupTextbook" },
+  { path: "/homework", key: "homework", icon: Tasks, feature: "homework", group: "groupTextbook" },
+  { path: "/grades", key: "grades", icon: Grades, feature: "grades", group: "groupGrades" },
+  { path: "/report", key: "report", icon: Bookmark, feature: "report", group: "groupGrades" },
+  { path: "/evaluations", key: "evaluations", icon: Star, feature: "evaluations", group: "groupSkills" },
+  { path: "/timetable", key: "timetable", icon: Calendar, feature: "timetable", group: "groupSchoolLife" },
+  { path: "/attendance", key: "attendance", icon: Chair, feature: "attendance", group: "groupSchoolLife" },
+  { path: "/news", key: "news", icon: Newspaper, feature: "news", group: "groupCommunication" },
+  { path: "/messages", key: "messages", icon: TextBubble, feature: "chat", group: "groupCommunication" },
 ];
 
 export function WebAppShell({ t, locale, children }: { t: WebAppDictionary; locale: Locale; children: ReactNode }) {
@@ -80,26 +88,32 @@ export function WebAppShell({ t, locale, children }: { t: WebAppDictionary; loca
     .join("")
     .slice(0, 2);
 
-  const links = visible.map(({ path, key, icon: SectionIcon }) => {
+  const links = visible.map(({ path, key, icon: SectionIcon, group }) => {
     const href = `${base}${path}`;
     const active = path ? pathname.startsWith(href) : pathname === href;
-    return { href, key, SectionIcon, active };
+    return { href, key, SectionIcon, active, group };
   });
   const current = links.find((link) => link.active);
 
   const navList = (large: boolean) =>
-    links.map(({ href, key, SectionIcon, active }) => (
-      <Link
-        key={key}
-        href={href as Route}
-        aria-current={active ? "page" : undefined}
-        className={`flex shrink-0 items-center gap-3 rounded-lg px-4 font-medium transition-colors ${large ? "py-3.5 text-lg" : "py-2.5"} ${
-          active ? "bg-primary text-white" : "text-foreground/70 hover:bg-foreground/5 hover:text-foreground"
-        }`}
-      >
-        <SectionIcon className={large ? "size-6" : "size-5"} />
-        {t.nav[key]}
-      </Link>
+    links.map(({ href, key, SectionIcon, active, group }, index) => (
+      <Fragment key={key}>
+        {group && group !== links[index - 1]?.group && (
+          <p className="mt-3 px-4 pb-1 font-mono text-xs font-medium tracking-widest text-foreground/40 uppercase">
+            {t.nav[group]}
+          </p>
+        )}
+        <Link
+          href={href as Route}
+          aria-current={active ? "page" : undefined}
+          className={`flex shrink-0 items-center gap-3 rounded-lg px-4 font-medium transition-colors ${large ? "py-3 text-lg" : "py-2"} ${
+            active ? "bg-primary text-white" : "text-foreground/70 hover:bg-foreground/5 hover:text-foreground"
+          }`}
+        >
+          <SectionIcon className={large ? "size-6" : "size-5"} />
+          {t.nav[key]}
+        </Link>
+      </Fragment>
     ));
 
   const account = (
@@ -153,7 +167,7 @@ export function WebAppShell({ t, locale, children }: { t: WebAppDictionary; loca
             </Link>
             {demoBadge}
           </div>
-          <nav aria-label={t.nav.label} className="flex flex-1 flex-col gap-1">
+          <nav aria-label={t.nav.label} className="scrollbar-none flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto">
             {navList(false)}
           </nav>
           <div className="flex flex-col gap-1">{account}</div>
@@ -172,7 +186,7 @@ export function WebAppShell({ t, locale, children }: { t: WebAppDictionary; loca
         {accountOpen && <AccountDialog onClose={() => setAccountOpen(false)} />}
 
         <main className="min-w-0 flex-1 px-5 pt-4 pb-16 lg:px-10 lg:pt-10">
-          <div className={pathname.endsWith("/timetable") || pathname.endsWith("/homework") ? "w-full" : "mx-auto max-w-6xl"}>{children}</div>
+          <div className={["/timetable", "/homework", "/contents", "/evaluations"].some((path) => pathname.endsWith(path)) ? "w-full" : "mx-auto max-w-6xl"}>{children}</div>
         </main>
       </div>
     </WebAppContext>

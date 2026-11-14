@@ -1,4 +1,4 @@
-export const features = ["timetable", "homework", "grades", "attendance", "news", "chat"] as const;
+export const features = ["timetable", "homework", "grades", "attendance", "news", "chat", "contents", "report", "evaluations"] as const;
 
 export type Feature = (typeof features)[number];
 
@@ -105,6 +105,46 @@ export type GradesDTO = {
   overall: Score;
   classOverall: Score;
   subjects: SubjectDTO[];
+};
+
+export type LessonContentDTO = {
+  id: string;
+  subject: string;
+  color?: string;
+  date: string;
+  teachers: string[];
+  contents: CourseResourceDTO[];
+};
+
+export type ReportSubjectDTO = {
+  name: string;
+  group?: string;
+  teachers: string[];
+  coefficient: number;
+  average: Score;
+  classAverage: Score;
+  min: Score;
+  max: Score;
+  assessments: string[];
+};
+
+export type ReportCardDTO = {
+  message?: string;
+  subjects: ReportSubjectDTO[];
+  overall: { name: string; value: string }[];
+};
+
+export type SkillDTO = { name: string; domain: string; level: string; abbreviation: string };
+
+export type EvaluationDTO = {
+  id: string;
+  name: string;
+  subject: string;
+  teacher: string;
+  date: string;
+  description: string;
+  coefficient: number;
+  skills: SkillDTO[];
 };
 
 export type AbsenceDTO = { id: string; from: string; to: string; reason?: string; justified: boolean; minutes: number };

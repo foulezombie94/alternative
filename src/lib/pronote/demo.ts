@@ -291,6 +291,86 @@ export class DemoService implements SchoolService {
     return { overall: { value: overallAverage(subjects) }, classOverall: { value: 13.3 }, subjects };
   }
 
+  async lessonContents(from: Date, to: Date) {
+    const courses = await this.timetable(from, to);
+    return courses
+      .filter((course) => course.state !== CourseState.Canceled && new Date(course.from) <= new Date())
+      .map((course, index) => ({
+        id: `demo-content-${course.id}`,
+        subject: course.subject,
+        color: course.color,
+        date: course.from,
+        teachers: course.teacher ? [course.teacher] : [],
+        contents: [
+          {
+            title: ["Cours", "Correction des exercices", "Activité en groupe"][index % 3],
+            description: [
+              "<p>Introduction de la nouvelle notion, exemples au tableau et prise de notes.</p>",
+              "<p>Correction des exercices de la séance précédente, puis exercices d'application.</p>",
+              "<p>Travail en binôme sur un document, mise en commun en fin de séance.</p>",
+            ][index % 3],
+            attachments: [],
+          },
+        ],
+      }))
+      .reverse();
+  }
+
+  async reportCardPeriods() {
+    return this.gradePeriods();
+  }
+
+  async reportCard(periodId: string) {
+    if (periodId === currentPeriodId()) {
+      return { message: "Le bulletin sera publié à la fin du trimestre.", subjects: [], overall: [] };
+    }
+    const grades = await this.grades(periodId);
+    return {
+      subjects: grades.subjects.map((subject, index) => ({
+        name: subject.name,
+        teachers: [lessons.find((lesson) => lesson.subject === subject.name)?.teacher ?? ""].filter(Boolean),
+        coefficient: 1,
+        average: subject.average,
+        classAverage: subject.classAverage,
+        min: subject.min,
+        max: subject.max,
+        assessments: [
+          ["Bon trimestre, élève sérieux et volontaire.", "Des progrès, il faut poursuivre les efforts à l'écrit.", "Très bonne participation à l'oral."][index % 3],
+        ],
+      })),
+      overall: [{ name: "Appréciation générale", value: "Ensemble satisfaisant. Continuez ainsi." }],
+    };
+  }
+
+  async evaluationPeriods() {
+    return this.gradePeriods();
+  }
+
+  async evaluations(periodId: string) {
+    const period = periods().find((candidate) => candidate.id === periodId) ?? periods()[0];
+    const start = new Date(period.start);
+    const levels = [
+      ["Très bonne maîtrise", "A+"],
+      ["Maîtrise satisfaisante", "A"],
+      ["Maîtrise fragile", "C"],
+    ];
+    return [0, 1, 2, 3].map((index) => ({
+      id: `demo-evaluation-${periodId}-${index}`,
+      name: ["Exposé oral", "Travail de groupe", "Compte rendu de TP", "Rédaction"][index],
+      subject: lessons[index].subject,
+      teacher: lessons[index].teacher,
+      date: addDays(start, 50 - index * 12).toISOString(),
+      description: "",
+      coefficient: 1,
+      skills: [0, 1].map((skill) => ({
+        name: ["S'exprimer à l'oral", "Coopérer et réaliser des projets", "Pratiquer une démarche scientifique", "Écrire"][(index + skill) % 4],
+        domain: ["Les langages pour penser et communiquer", "La formation de la personne et du citoyen"][skill],
+        level: levels[(index + skill) % 3][0],
+        abbreviation: levels[(index + skill) % 3][1],
+      })),
+    }));
+  }
+
   async attendancePeriods() {
     return this.gradePeriods();
   }

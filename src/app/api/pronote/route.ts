@@ -170,6 +170,16 @@ async function runAction(service: SchoolService, action: string, body: Body): Pr
     case "setHomeworkDone":
       await service.setHomeworkDone(text(body, "id"), body.done === true);
       return { ok: true };
+    case "lessonContents":
+      return service.lessonContents(date(body, "from"), date(body, "to"));
+    case "reportCardPeriods":
+      return service.reportCardPeriods();
+    case "reportCard":
+      return service.reportCard(text(body, "periodId"));
+    case "evaluationPeriods":
+      return service.evaluationPeriods();
+    case "evaluations":
+      return service.evaluations(text(body, "periodId"));
     case "gradePeriods":
       return service.gradePeriods();
     case "grades":

@@ -30,7 +30,15 @@ La session est gardée dans un cookie chiffré, ce qui permet de marcher sur Ver
 
 ## Fonctionnalités
 
-Accueil, emploi du temps (avec le contenu des cours), devoirs (cocher « fait »), notes et moyennes, vie scolaire (absences, retards, punitions, observations), actualités (accusé de lecture), messagerie (lire, répondre, nouveau message). Français et anglais.
+Le menu reprend les rubriques de Pronote :
+
+- **Cahier de textes** : contenus et ressources des cours, travail à faire (cocher « fait »)
+- **Notes** : mes notes et moyennes, bulletin (moyennes et appréciations)
+- **Compétences** : évaluations
+- **Vie scolaire** : emploi du temps (cours en cours, pauses midi, permanences, jours fériés), carnet (absences, retards, punitions, observations, avec filtres)
+- **Communication** : informations & sondages (lecture), discussions (lire, répondre, nouveau message)
+
+Fenêtre « Mon compte » au clic sur le nom. Français et anglais.
 
 ## Design
 
