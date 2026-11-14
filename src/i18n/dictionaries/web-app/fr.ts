@@ -27,6 +27,12 @@ const webAppFr = {
     groupCommunication: "Communication",
   },
   contents: {
+    everything: "Toute l’année",
+    search: "Rechercher dans les contenus",
+    subject: "Matière",
+    allSubjects: "Toutes les matières",
+    results: "résultats",
+    noMatch: "Aucun contenu ne correspond à ta recherche.",
     none: "Aucun contenu de cours cette semaine.",
   },
   report: {

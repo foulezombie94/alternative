@@ -29,6 +29,12 @@ const webAppEn: WebAppDictionary = {
     groupCommunication: "Communication",
   },
   contents: {
+    everything: "Whole year",
+    search: "Search lesson content",
+    subject: "Subject",
+    allSubjects: "All subjects",
+    results: "results",
+    noMatch: "No content matches your search.",
     none: "No lesson content this week.",
   },
   report: {
