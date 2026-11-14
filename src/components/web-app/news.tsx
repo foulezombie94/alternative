@@ -1,9 +1,9 @@
 "use client";
 
 import { Check, ChevronLeft, Newspaper, Paper, Pie, Search } from "@getpapillon/papicons";
-import { useMemo, useState } from "react";
-import type { NewsDetailDTO, NewsDTO } from "@/lib/pronote/types";
-import { call, useApi } from "./api";
+import { useEffect, useMemo, useState } from "react";
+import type { AttachmentDTO, NewsDetailDTO, NewsDTO } from "@/lib/pronote/types";
+import { ApiFailure, call, sessionLostCodes, useApi } from "./api";
 import { useWebApp } from "./context";
 import { capitalize, formatDay, formatShortDate } from "./format";
 import { Async, Attachments, Empty, Html, PageHeader } from "./ui";
@@ -16,6 +16,29 @@ const filters: Record<FilterId, (item: NewsDTO) => boolean> = {
   confirm: (item) => item.needsAcknowledgement && !item.acknowledged,
   survey: (item) => item.survey,
 };
+
+const batchSize = 6;
+
+function uniqueFiles(files: AttachmentDTO[]) {
+  const seen = new Set<string>();
+  return files.filter((file) => {
+    const key = `${file.name}|${file.url}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+function withDetail(item: NewsDTO, detail: NewsDetailDTO | null | undefined): NewsDTO {
+  if (!detail) return item;
+  return {
+    ...item,
+    content: item.content.trim() ? item.content : detail.content,
+    attachments: uniqueFiles([...item.attachments, ...detail.attachments]),
+    needsAcknowledgement: item.needsAcknowledgement || detail.needsAcknowledgement,
+    acknowledged: item.acknowledged || detail.acknowledged,
+  };
+}
 
 function plain(text: string) {
   return text
@@ -78,15 +101,23 @@ function Row({ item, active, onSelect }: { item: NewsDTO; active: boolean; onSel
           <span className="shrink-0 font-mono text-xs text-foreground/50">{formatShortDate(item.date, locale)}</span>
         </span>
         {item.author && <span className="truncate text-sm text-foreground/50">{item.author}</span>}
-        <span className="flex items-center justify-between gap-2">
-          <Tags item={item} />
-          {item.attachments.length > 0 && (
-            <span className="ml-auto flex items-center gap-1 text-xs text-foreground/50">
-              <Paper className="size-4" />
-              {item.attachments.length}
-            </span>
-          )}
-        </span>
+        <Tags item={item} />
+        {item.attachments.length > 0 && (
+          <span className="flex min-w-0 flex-wrap items-center gap-1.5">
+            {item.attachments.slice(0, 2).map((file) => (
+              <span
+                key={`${file.name}|${file.url}`}
+                className="flex max-w-full min-w-0 items-center gap-1 rounded-md border border-foreground/10 px-1.5 py-0.5 text-xs text-foreground/60"
+              >
+                <Paper className="size-3.5 shrink-0" />
+                <span className="truncate">{file.name}</span>
+              </span>
+            ))}
+            {item.attachments.length > 2 && (
+              <span className="text-xs text-foreground/50">+{item.attachments.length - 2}</span>
+            )}
+          </span>
+        )}
       </span>
     </button>
   );
@@ -127,20 +158,39 @@ function Acknowledge({ item, onDone }: { item: NewsDTO; onDone: () => void }) {
   );
 }
 
-function Body({ item, onAcknowledged }: { item: NewsDTO; onAcknowledged: () => void }) {
+function Body({
+  item,
+  known,
+  onAcknowledged,
+  onLoaded,
+}: {
+  item: NewsDTO;
+  known: boolean;
+  onAcknowledged: () => void;
+  onLoaded: (detail: NewsDetailDTO | null) => void;
+}) {
   const { t } = useWebApp();
-  const needsDetail = !item.content.trim();
+  const needsDetail = !known && !item.content.trim();
   const detail = useApi<NewsDetailDTO | null>(needsDetail ? "newsDetail" : null, {
     id: item.id,
     title: item.title,
     date: item.date,
   });
   const [acknowledged, setAcknowledged] = useState(false);
+  const loaded = detail.data;
+
+  useEffect(() => {
+    if (loaded !== undefined) onLoaded(loaded);
+  }, [loaded, onLoaded]);
 
   if (!needsDetail) {
     return (
       <>
-        <Html html={item.content} className="text-foreground/80" />
+        {item.content.trim() ? (
+          <Html html={item.content} className="text-foreground/80" />
+        ) : (
+          <p className="text-sm text-foreground/60">{t.news.emptyContent}</p>
+        )}
         <Attachments files={item.attachments} />
         {item.needsAcknowledgement && <Acknowledge item={item} onDone={onAcknowledged} />}
       </>
@@ -162,7 +212,7 @@ function Body({ item, onAcknowledged }: { item: NewsDTO; onAcknowledged: () => v
             ) : (
               <p className="text-sm text-foreground/60">{t.news.emptyContent}</p>
             )}
-            <Attachments files={[...item.attachments, ...(data?.attachments ?? [])]} />
+            <Attachments files={uniqueFiles([...item.attachments, ...(data?.attachments ?? [])])} />
             {(item.needsAcknowledgement || data?.needsAcknowledgement) && (
               <Acknowledge
                 item={merged}
@@ -187,6 +237,35 @@ export function WebAppNews() {
   const [filter, setFilter] = useState<FilterId>("all");
   const [search, setSearch] = useState("");
   const [debug, setDebug] = useState<{ id: string; data: Debug } | null>(null);
+  const [details, setDetails] = useState<Record<string, NewsDetailDTO | null>>({});
+  const saveDetail = useMemo(
+    () => (id: string) => (detail: NewsDetailDTO | null) =>
+      setDetails((current) => (id in current ? current : { ...current, [id]: detail })),
+    [],
+  );
+  const list = state.data;
+
+  useEffect(() => {
+    if (!list) return;
+    const pending = list.filter((item) => !item.content.trim());
+    if (!pending.length) return;
+    let active = true;
+    (async () => {
+      for (let index = 0; index < pending.length && active; index += batchSize) {
+        const items = pending.slice(index, index + batchSize).map(({ id, title, date }) => ({ id, title, date }));
+        try {
+          const result = await call<Record<string, NewsDetailDTO | null>>("newsDetails", { items });
+          if (active) setDetails((current) => ({ ...result, ...current }));
+        } catch (error) {
+          if (error instanceof ApiFailure && sessionLostCodes.includes(error.code)) return;
+        }
+      }
+    })();
+    return () => {
+      active = false;
+    };
+  }, [list]);
+
   const month = useMemo(() => new Intl.DateTimeFormat(locale, { month: "long", year: "numeric" }), [locale]);
 
   async function loadDebug(id: string) {
@@ -204,7 +283,8 @@ export function WebAppNews() {
     <>
       <PageHeader title={t.nav.news} />
       <Async state={state} empty={t.common.empty} isEmpty={(list) => !list.length}>
-        {(list) => {
+        {(raw) => {
+          const list = raw.map((item) => withDetail(item, details[item.id]));
           const words = plain(search).split(/\s+/).filter(Boolean);
           const visible = list.filter((item) => {
             if (!filters[filter](item)) return false;
@@ -221,7 +301,7 @@ export function WebAppNews() {
             groups.set(key, [...(groups.get(key) ?? []), item]);
           }
           const markAcknowledged = (id: string) =>
-            state.update(list.map((entry) => (entry.id === id ? { ...entry, acknowledged: true, read: true } : entry)));
+            state.update(raw.map((entry) => (entry.id === id ? { ...entry, acknowledged: true, read: true } : entry)));
 
           return (
             <div className="grid grid-cols-1 items-start gap-4 lg:grid-cols-5">
@@ -306,7 +386,13 @@ export function WebAppNews() {
                       <span>{capitalize(formatDay(selected.date, locale, true))}</span>
                     </p>
                     <div className="mt-6 border-t border-foreground/10 pt-6">
-                      <Body key={selected.id} item={selected} onAcknowledged={() => markAcknowledged(selected.id)} />
+                      <Body
+                        key={selected.id}
+                        item={selected}
+                        known={selected.id in details}
+                        onAcknowledged={() => markAcknowledged(selected.id)}
+                        onLoaded={saveDetail(selected.id)}
+                      />
                     </div>
                     <div className="mt-8 text-xs">
                       {debug?.id === selected.id ? (

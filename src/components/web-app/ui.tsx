@@ -188,8 +188,8 @@ export function Attachments({ files }: { files: AttachmentDTO[] }) {
     <div className="mt-4">
       <p className="mb-2 text-sm font-medium text-foreground/50">{t.common.attachments}</p>
       <ul className="flex flex-wrap gap-2">
-        {files.map((file) => (
-          <li key={file.url}>
+        {files.map((file, index) => (
+          <li key={`${index}-${file.url}`}>
             <a
               href={file.url}
               target="_blank"

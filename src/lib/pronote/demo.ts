@@ -475,7 +475,7 @@ export class DemoService implements SchoolService {
         survey: index === 3,
         needsAcknowledgement: index === 0,
         acknowledged: this.acknowledged.has(id),
-        attachments: [],
+        attachments: index < 2 ? [{ name: index === 0 ? "planning-salles.pdf" : "selection-cdi.pdf", url: "#" }] : [],
       };
     });
   }

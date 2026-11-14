@@ -195,6 +195,23 @@ async function runAction(service: SchoolService, action: string, body: Body): Pr
     case "newsDetail":
       if (!(service instanceof PronoteService)) return null;
       return service.newsDetail(text(body, "id"), typeof body.title === "string" ? body.title : "", typeof body.date === "string" ? body.date : "");
+    case "newsDetails": {
+      const items = Array.isArray(body.items) ? body.items.slice(0, 8) : [];
+      const result: Record<string, unknown> = {};
+      if (!(service instanceof PronoteService)) return result;
+      for (const item of items) {
+        if (!item || typeof item !== "object") continue;
+        const { id, title, date } = item as Record<string, unknown>;
+        if (typeof id !== "string" || !id) continue;
+        try {
+          result[id] = await service.newsDetail(id, typeof title === "string" ? title : "", typeof date === "string" ? date : "");
+        } catch (error) {
+          if (error instanceof SessionExpiredError) throw error;
+          result[id] = null;
+        }
+      }
+      return result;
+    }
     case "newsDebug":
       if (!(service instanceof PronoteService)) return { patched: true, raw: null };
       return service.newsDebug(text(body, "id"));
