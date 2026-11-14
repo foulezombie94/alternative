@@ -2,7 +2,8 @@
 
 import type { Route } from "next";
 import Link from "next/link";
-import { useMemo } from "react";
+import { Add } from "@getpapillon/papicons";
+import { useMemo, useState } from "react";
 import type { CourseDTO, Feature, GradesDTO, HomeworkDTO, NewsDTO, PeriodsDTO, UpcomingTestsDTO } from "@/lib/pronote/types";
 import { CourseState } from "@/lib/pronote/types";
 import { after, useApi } from "./api";
@@ -212,6 +213,7 @@ function News() {
 function UpcomingTests() {
   const { t, locale } = useWebApp();
   const state = useApi<UpcomingTestsDTO>("upcomingTests");
+  const [expanded, setExpanded] = useState(false);
   if (!state.data) return null;
   const { tests, raw } = state.data;
 
@@ -220,7 +222,7 @@ function UpcomingTests() {
       <h2 className="mb-3 font-mono text-xs font-medium tracking-widest text-foreground/50 uppercase">{t.home.tests}</h2>
       {tests.length ? (
         <ul className="flex flex-col gap-2">
-          {tests.slice(0, 3).map((test) => {
+          {tests.slice(0, expanded ? undefined : 1).map((test) => {
             const date = new Date(test.from);
             return (
               <li key={test.id} className="flex items-start gap-3">
@@ -249,6 +251,17 @@ function UpcomingTests() {
         </ul>
       ) : (
         <p className="text-sm text-foreground/50">{t.home.noTests}</p>
+      )}
+      {tests.length > 1 && (
+        <button
+          type="button"
+          aria-expanded={expanded}
+          onClick={() => setExpanded((value) => !value)}
+          className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-lg border border-foreground/10 px-4 py-1.5 text-sm font-medium transition-colors hover:border-foreground/30"
+        >
+          {!expanded && <Add aria-hidden className="size-4" />}
+          {expanded ? t.attendance.showLess : `${tests.length - 1} ${t.attendance.more}`}
+        </button>
       )}
       {raw && (
         <details className="mt-2 text-xs text-foreground/40">
