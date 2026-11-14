@@ -18,6 +18,7 @@ import {
   type GradeValue,
   GradeKind,
   gradebook,
+  homepageRaw,
   gradesOverview,
   loginCredentials,
   loginQrCode,
@@ -230,6 +231,44 @@ function newsContent(item: NewsInformation | NewsSurvey) {
   return content?.trim() ? content : "";
 }
 
+type Raw = Record<string, unknown>;
+
+function unwrap(value: unknown): unknown {
+  return value && typeof value === "object" && !Array.isArray(value) && "V" in value ? (value as Raw).V : value;
+}
+
+function rawText(value: unknown): string | undefined {
+  const inner = unwrap(value);
+  if (typeof inner === "string") return inner.replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim() || undefined;
+  if (inner && typeof inner === "object" && typeof (inner as Raw).L === "string") return (inner as Raw).L as string;
+  return undefined;
+}
+
+function rawDate(value: unknown): Date | undefined {
+  const inner = unwrap(value);
+  if (typeof inner !== "string") return undefined;
+  const match = /^(\d{1,2})\/(\d{1,2})\/(\d{4})(?:\s+(\d{1,2}):(\d{2}))?/.exec(inner);
+  if (!match) return undefined;
+  const [, day, month, year, hours = "0", minutes = "0"] = match;
+  return new Date(Number(year), Number(month) - 1, Number(day), Number(hours), Number(minutes));
+}
+
+function pick(entry: Raw, keys: string[]) {
+  const found = Object.keys(entry).find((key) => keys.includes(key.toLowerCase()));
+  return found ? entry[found] : undefined;
+}
+
+function findTestList(homepage: Raw): Raw[] | undefined {
+  const key = Object.keys(homepage).find((name) => /^(ds|listeds|devoirssurveilles|prochainsds)$/i.test(name));
+  if (!key) return undefined;
+  let value = unwrap(homepage[key]);
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    const inner = Object.values(value as Raw).map(unwrap).find(Array.isArray);
+    value = inner;
+  }
+  return Array.isArray(value) ? (value as Raw[]) : undefined;
+}
+
 function splitName(name: string) {
   const [main, detail] = name.split("(");
   return { name: main.trim(), detail: detail?.replace(")", "").trim() || undefined };
@@ -357,6 +396,61 @@ export class PronoteService implements SchoolService {
         if (error instanceof SessionExpiredError) throw error;
         return { ...base, detailsAvailable: false };
       }
+    });
+  }
+
+  upcomingTests() {
+    return this.run(async (handle) => {
+      let raw: Raw | null = null;
+      try {
+        raw = await homepageRaw(handle);
+      } catch (error) {
+        if (error instanceof SessionExpiredError) throw error;
+      }
+
+      const now = Date.now();
+      const fromHomepage = (raw ? (findTestList(raw) ?? []) : [])
+        .map((entry, index) => {
+          const from = rawDate(pick(entry, ["datedebut", "date", "debut", "datedebutcours"]));
+          if (!from) return null;
+          const to = rawDate(pick(entry, ["datefin", "fin"]));
+          const subject = rawText(pick(entry, ["matiere", "service", "discipline"])) ?? rawText(entry.L) ?? "";
+          const title = rawText(pick(entry, ["commentaire", "titre", "sujet", "description", "libelle", "l"]));
+          return {
+            id: typeof entry.N === "string" ? entry.N : `test-${index}`,
+            subject,
+            title: title && title !== subject ? title : undefined,
+            from: iso(from),
+            to: to ? iso(to) : undefined,
+            room: rawText(pick(entry, ["salle", "salles", "lieu"])),
+          };
+        })
+        .filter((test) => test !== null && new Date(test.from).getTime() >= now - 3600000)
+        .map((test) => test!);
+
+      if (fromHomepage.length) return { tests: fromHomepage.sort((a, b) => a.from.localeCompare(b.from)) };
+
+      const start = new Date();
+      const end = new Date(start.getTime() + 28 * 24 * 3600 * 1000);
+      const courses = await this.timetable(start, end).catch(() => []);
+      const tests = courses
+        .filter((course) => course.state === CourseState.Test && new Date(course.to).getTime() >= now)
+        .map((course) => ({
+          id: course.id,
+          subject: course.subject,
+          from: course.from,
+          to: course.to,
+          room: course.room,
+          color: course.color,
+        }));
+
+      const homepageTests = raw ? Object.fromEntries(Object.entries(raw).filter(([key]) => /ds|devoir/i.test(key))) : null;
+      return {
+        tests,
+        raw: tests.length
+          ? undefined
+          : JSON.stringify({ keys: raw ? Object.keys(raw) : null, tests: homepageTests }, null, 2).slice(0, 12000),
+      };
     });
   }
 

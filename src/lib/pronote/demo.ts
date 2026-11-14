@@ -167,6 +167,25 @@ export class DemoService implements SchoolService {
     };
   }
 
+  async upcomingTests() {
+    const start = new Date();
+    const courses = await this.timetable(start, addDays(start, 21));
+    return {
+      tests: courses
+        .filter((course) => course.state === CourseState.Test)
+        .slice(0, 3)
+        .map((course, index) => ({
+          id: `demo-test-${course.id}`,
+          subject: course.subject,
+          title: ["Évaluation sommative : séquences 1 et 2", "Contrôle de fin de chapitre", "Devoir surveillé de 2 heures"][index % 3],
+          from: course.from,
+          to: course.to,
+          room: course.room,
+          color: course.color,
+        })),
+    };
+  }
+
   async holidays() {
     return demoHolidays().map((holiday) => ({
       name: holiday.name,

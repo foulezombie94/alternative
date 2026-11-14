@@ -3,7 +3,7 @@
 import type { Route } from "next";
 import Link from "next/link";
 import { useMemo } from "react";
-import type { CourseDTO, Feature, GradesDTO, HomeworkDTO, NewsDTO, PeriodsDTO } from "@/lib/pronote/types";
+import type { CourseDTO, Feature, GradesDTO, HomeworkDTO, NewsDTO, PeriodsDTO, UpcomingTestsDTO } from "@/lib/pronote/types";
 import { CourseState } from "@/lib/pronote/types";
 import { after, useApi } from "./api";
 import { useWebApp } from "./context";
@@ -209,17 +209,71 @@ function News() {
   );
 }
 
+function UpcomingTests() {
+  const { t, locale } = useWebApp();
+  const state = useApi<UpcomingTestsDTO>("upcomingTests");
+  if (!state.data) return null;
+  const { tests, raw } = state.data;
+
+  return (
+    <section className="w-full rounded-xl border border-foreground/10 bg-surface p-4 lg:max-w-md">
+      <h2 className="mb-3 font-mono text-xs font-medium tracking-widest text-foreground/50 uppercase">{t.home.tests}</h2>
+      {tests.length ? (
+        <ul className="flex flex-col gap-2">
+          {tests.slice(0, 3).map((test) => {
+            const date = new Date(test.from);
+            return (
+              <li key={test.id} className="flex items-start gap-3">
+                <span className="flex w-11 shrink-0 flex-col items-center rounded-md bg-accent/10 py-1 text-accent">
+                  <span className="text-lg leading-tight font-semibold tabular-nums">{date.getDate()}</span>
+                  <span className="font-mono text-xs uppercase">
+                    {date.toLocaleDateString(locale, { month: "short" }).replace(".", "")}
+                  </span>
+                </span>
+                <span className="min-w-0">
+                  <span className="block font-semibold wrap-anywhere">{test.subject}</span>
+                  {test.title && <span className="block text-sm text-foreground/80 wrap-anywhere">{test.title}</span>}
+                  <span className="block text-sm text-foreground/50">
+                    {[
+                      capitalize(date.toLocaleDateString(locale, { weekday: "long" })),
+                      test.to ? `${formatTime(test.from, locale)} – ${formatTime(test.to, locale)}` : formatTime(test.from, locale),
+                      test.room,
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </span>
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      ) : (
+        <p className="text-sm text-foreground/50">{t.home.noTests}</p>
+      )}
+      {raw && (
+        <details className="mt-2 text-xs text-foreground/40">
+          <summary className="cursor-pointer underline">{t.news.diagnostic}</summary>
+          <pre className="mt-2 max-h-64 overflow-auto rounded-lg bg-background p-2 whitespace-pre-wrap select-all">{raw}</pre>
+        </details>
+      )}
+    </section>
+  );
+}
+
 export function WebAppHome() {
   const { t, locale, profile } = useWebApp();
   const has = (feature: Feature) => profile.features.includes(feature);
 
   return (
     <>
-      <div className="mb-8">
-        <p className="text-foreground/50">{capitalize(formatDay(new Date(), locale))}</p>
-        <h1 className="text-3xl font-medium tracking-tight">
-          {t.home.greeting} {profile.firstName}
-        </h1>
+      <div className="mb-8 flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div>
+          <p className="text-foreground/50">{capitalize(formatDay(new Date(), locale))}</p>
+          <h1 className="text-3xl font-medium tracking-tight">
+            {t.home.greeting} {profile.firstName}
+          </h1>
+        </div>
+        {has("timetable") && <UpcomingTests />}
       </div>
       <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
         {has("timetable") && <Courses />}

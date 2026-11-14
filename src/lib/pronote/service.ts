@@ -13,6 +13,7 @@ import type {
   NewsDTO,
   PeriodsDTO,
   ReportCardDTO,
+  UpcomingTestsDTO,
   ProfileDTO,
   RecipientDTO,
 } from "./types";
@@ -22,6 +23,7 @@ export interface SchoolService {
   account(): Promise<AccountDTO>;
   timetable(from: Date, to: Date): Promise<CourseDTO[]>;
   holidays(): Promise<HolidayDTO[]>;
+  upcomingTests(): Promise<UpcomingTestsDTO>;
   courseResources(resourceId: string): Promise<CourseResourceDTO[]>;
   homeworks(from: Date, to: Date): Promise<HomeworkDTO[]>;
   setHomeworkDone(id: string, done: boolean): Promise<void>;

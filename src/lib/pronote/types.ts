@@ -148,6 +148,18 @@ export type EvaluationDTO = {
   skills: SkillDTO[];
 };
 
+export type UpcomingTestDTO = {
+  id: string;
+  subject: string;
+  title?: string;
+  from: string;
+  to?: string;
+  room?: string;
+  color?: string;
+};
+
+export type UpcomingTestsDTO = { tests: UpcomingTestDTO[]; raw?: string };
+
 export type AbsenceDTO = { id: string; from: string; to: string; reason?: string; justified: boolean; minutes: number };
 export type DelayDTO = { id: string; date: string; reason?: string; justified: boolean; minutes: number };
 export type PunishmentDTO = {

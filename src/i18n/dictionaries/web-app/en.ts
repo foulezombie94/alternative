@@ -135,6 +135,8 @@ const webAppEn: WebAppDictionary = {
     notJustified: "Unexcused",
   },
   home: {
+    tests: "Upcoming tests",
+    noTests: "No test announced.",
     greeting: "Hello",
     today: "Today",
     nextCourses: "Next classes",

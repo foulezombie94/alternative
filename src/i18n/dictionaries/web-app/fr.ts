@@ -133,6 +133,8 @@ const webAppFr = {
     notJustified: "Non justifié",
   },
   home: {
+    tests: "Prochains DS",
+    noTests: "Aucun DS annoncé.",
     greeting: "Bonjour",
     today: "Aujourd’hui",
     nextCourses: "Prochains cours",

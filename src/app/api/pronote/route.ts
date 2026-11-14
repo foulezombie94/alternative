@@ -161,6 +161,8 @@ async function runAction(service: SchoolService, action: string, body: Body): Pr
       return service.account();
     case "timetable":
       return service.timetable(date(body, "from"), date(body, "to"));
+    case "upcomingTests":
+      return service.upcomingTests();
     case "holidays":
       return service.holidays();
     case "courseResources":
