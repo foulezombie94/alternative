@@ -199,8 +199,6 @@ async function runAction(service: SchoolService, action: string, body: Body): Pr
     case "createChat":
       await service.createChat(text(body, "subject", 200), text(body, "content"), textList(body, "recipientIds"));
       return { ok: true };
-    case "canteen":
-      return service.canteen(date(body, "from"));
     default:
       throw new InputError("action");
   }

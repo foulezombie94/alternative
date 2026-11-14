@@ -7,7 +7,6 @@ import type {
   GradesDTO,
   HolidayDTO,
   HomeworkDTO,
-  MenuDayDTO,
   NewsDTO,
   PeriodsDTO,
   ProfileDTO,
@@ -32,6 +31,5 @@ export interface SchoolService {
   sendMessage(id: string, content: string): Promise<void>;
   recipients(): Promise<RecipientDTO[]>;
   createChat(subject: string, content: string, recipientIds: string[]): Promise<void>;
-  canteen(from: Date): Promise<MenuDayDTO[]>;
   logout(): void;
 }

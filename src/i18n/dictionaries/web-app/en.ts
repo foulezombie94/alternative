@@ -14,7 +14,6 @@ const webAppEn: WebAppDictionary = {
     attendance: "School life",
     news: "News",
     messages: "Messages",
-    canteen: "Cafeteria",
     openMenu: "Open menu",
     closeMenu: "Close menu",
     logout: "Log out",
@@ -181,17 +180,6 @@ const webAppEn: WebAppDictionary = {
     cannotReply: "Replies are closed for this conversation.",
     select: "Pick a conversation to read it.",
     unread: "unread",
-  },
-  canteen: {
-    lunch: "Lunch",
-    dinner: "Dinner",
-    entry: "Starter",
-    main: "Main",
-    side: "Side",
-    cheese: "Cheese",
-    dessert: "Dessert",
-    drink: "Drink",
-    noMenu: "No menu published for this week.",
   },
 };
 

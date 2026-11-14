@@ -12,7 +12,6 @@ const webAppFr = {
     attendance: "Vie scolaire",
     news: "Actualités",
     messages: "Messagerie",
-    canteen: "Cantine",
     openMenu: "Ouvrir le menu",
     closeMenu: "Fermer le menu",
     logout: "Se déconnecter",
@@ -179,17 +178,6 @@ const webAppFr = {
     cannotReply: "Les réponses sont fermées pour cette discussion.",
     select: "Choisis une discussion pour la lire.",
     unread: "non lus",
-  },
-  canteen: {
-    lunch: "Déjeuner",
-    dinner: "Dîner",
-    entry: "Entrée",
-    main: "Plat",
-    side: "Accompagnement",
-    cheese: "Fromage",
-    dessert: "Dessert",
-    drink: "Boisson",
-    noMenu: "Aucun menu publié pour cette semaine.",
   },
 };
 

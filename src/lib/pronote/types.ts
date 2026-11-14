@@ -1,4 +1,4 @@
-export const features = ["timetable", "homework", "grades", "attendance", "news", "chat", "canteen"] as const;
+export const features = ["timetable", "homework", "grades", "attendance", "news", "chat"] as const;
 
 export type Feature = (typeof features)[number];
 
@@ -158,10 +158,6 @@ export type MessageDTO = {
 export type ChatThreadDTO = { messages: MessageDTO[]; canReply: boolean };
 
 export type RecipientDTO = { id: string; name: string; detail?: string };
-
-export type DishesDTO = Partial<Record<"entry" | "main" | "side" | "cheese" | "dessert" | "drink", string[]>>;
-
-export type MenuDayDTO = { date: string; lunch?: DishesDTO; dinner?: DishesDTO };
 
 export type SchoolDTO = { name: string; url: string; distance: number; postalCode: number };
 

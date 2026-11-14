@@ -30,7 +30,7 @@ La session est gardée dans un cookie chiffré, ce qui permet de marcher sur Ver
 
 ## Fonctionnalités
 
-Accueil, emploi du temps (avec le contenu des cours), devoirs (cocher « fait »), notes et moyennes, vie scolaire (absences, retards, punitions, observations), actualités (accusé de lecture), messagerie (lire, répondre, nouveau message), menus de la cantine. Français et anglais.
+Accueil, emploi du temps (avec le contenu des cours), devoirs (cocher « fait »), notes et moyennes, vie scolaire (absences, retards, punitions, observations), actualités (accusé de lecture), messagerie (lire, répondre, nouveau message). Français et anglais.
 
 ## Design
 

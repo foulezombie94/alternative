@@ -9,7 +9,6 @@ import {
   features,
   type GradesDTO,
   type HomeworkDTO,
-  type MenuDayDTO,
   type MessageDTO,
   type NewsDTO,
   type PeriodDTO,
@@ -77,14 +76,6 @@ const gradeSubjects = [
   ["Physique-Chimie", 13.5, 12.4, "#24A17A"],
   ["Sciences de la vie et de la Terre", 15, 13.5, "#4A9B4F"],
 ] as const;
-
-const menuDishes = [
-  { entry: ["Carottes râpées"], main: ["Poulet basquaise"], side: ["Riz pilaf"], dessert: ["Yaourt aux fruits"] },
-  { entry: ["Salade de lentilles"], main: ["Lasagnes à la bolognaise"], side: ["Salade verte"], dessert: ["Pomme"] },
-  { entry: ["Velouté de potiron"], main: ["Poisson pané"], side: ["Haricots verts"], cheese: ["Emmental"], dessert: ["Compote"] },
-  { entry: ["Taboulé"], main: ["Chili sin carne"], side: ["Semoule"], dessert: ["Mousse au chocolat"] },
-  { entry: ["Œuf mayonnaise"], main: ["Hachis parmentier"], side: ["Salade"], dessert: ["Tarte aux pommes"] },
-];
 
 const at = (day: Date, hours: number, minutes = 0) => {
   const result = new Date(day);
@@ -425,10 +416,5 @@ export class DemoService implements SchoolService {
       messages: 0,
     });
     await this.sendMessage(id, content);
-  }
-
-  async canteen(from: Date): Promise<MenuDayDTO[]> {
-    const start = monday(from);
-    return menuDishes.map((lunch, index) => ({ date: addDays(start, index).toISOString(), lunch }));
   }
 }

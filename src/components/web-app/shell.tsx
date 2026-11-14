@@ -5,7 +5,6 @@ import {
   Calendar,
   Chair,
   Cross,
-  Cutlery,
   Grades,
   Home,
   Logout,
@@ -37,7 +36,6 @@ const sections: { path: string; key: keyof WebAppDictionary["nav"]; icon: Icon; 
   { path: "/attendance", key: "attendance", icon: Chair, feature: "attendance" },
   { path: "/news", key: "news", icon: Newspaper, feature: "news" },
   { path: "/messages", key: "messages", icon: TextBubble, feature: "chat" },
-  { path: "/canteen", key: "canteen", icon: Cutlery, feature: "canteen" },
 ];
 
 export function WebAppShell({ t, locale, children }: { t: WebAppDictionary; locale: Locale; children: ReactNode }) {

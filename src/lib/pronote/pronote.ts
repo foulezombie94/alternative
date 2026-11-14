@@ -13,15 +13,12 @@ import {
   discussionSendMessage,
   EntityKind,
   finishLoginManually,
-  type Food,
   type GradeValue,
   GradeKind,
   gradesOverview,
   loginCredentials,
   loginQrCode,
   loginToken,
-  type Meal,
-  menus,
   newDiscussion,
   type NewDiscussionRecipient,
   newDiscussionRecipients,
@@ -54,7 +51,6 @@ import {
   type CourseDTO,
   CourseKind,
   CourseState,
-  type DishesDTO,
   type Feature,
   type PeriodsDTO,
   type Score,
@@ -69,7 +65,6 @@ const tabFeatures: Partial<Record<TabLocation, Feature>> = {
   [TabLocation.Notebook]: "attendance",
   [TabLocation.News]: "news",
   [TabLocation.Discussions]: "chat",
-  [TabLocation.Menus]: "canteen",
 };
 
 const canceledStatuses = new Set([
@@ -209,19 +204,6 @@ function score(grade: GradeValue | undefined): Score {
     default:
       return { value: null };
   }
-}
-
-function dishes(meal: Meal | undefined): DishesDTO | undefined {
-  if (!meal) return undefined;
-  const names = (foods: ReadonlyArray<Food> | undefined) => foods?.map((food) => food.name).filter(Boolean);
-  return {
-    entry: names(meal.entry),
-    main: names(meal.main),
-    side: names(meal.side),
-    cheese: names(meal.fromage),
-    dessert: names(meal.dessert),
-    drink: names(meal.drink),
-  };
 }
 
 function clampRange(handle: SessionHandle, from: Date, to: Date): [Date, Date] | null {
@@ -702,14 +684,5 @@ export class PronoteService implements SchoolService {
       .filter((recipient): recipient is NewDiscussionRecipient => Boolean(recipient));
     if (!recipients.length) throw new NotSupportedError("recipients");
     await this.run((handle) => newDiscussion(handle, subject, content, recipients));
-  }
-
-  canteen(from: Date) {
-    return this.run(async (handle) => {
-      const week = await menus(handle, from);
-      return (week.days ?? [])
-        .map((day) => ({ date: iso(day.date), lunch: dishes(day.lunch), dinner: dishes(day.dinner) }))
-        .sort((a, b) => a.date.localeCompare(b.date));
-    });
   }
 }
