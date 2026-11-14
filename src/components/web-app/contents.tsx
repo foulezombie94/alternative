@@ -65,7 +65,7 @@ export function WebAppContents() {
   return (
     <>
       <PageHeader title={t.nav.contents}>
-        {!everything && <WeekNav week={week} onChange={setWeek} />}
+        {!everything && <WeekNav week={week} onChange={setWeek} calendar />}
         <button
           type="button"
           aria-pressed={everything}

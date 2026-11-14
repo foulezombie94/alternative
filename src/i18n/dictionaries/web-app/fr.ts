@@ -113,6 +113,7 @@ const webAppFr = {
     retry: "Réessayer",
   },
   common: {
+    pickDate: "Choisir une date",
     loading: "Chargement…",
     empty: "Rien à afficher pour le moment.",
     previousWeek: "Semaine précédente",

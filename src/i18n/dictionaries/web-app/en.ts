@@ -115,6 +115,7 @@ const webAppEn: WebAppDictionary = {
     retry: "Try again",
   },
   common: {
+    pickDate: "Pick a date",
     loading: "Loading…",
     empty: "Nothing to show yet.",
     previousWeek: "Previous week",

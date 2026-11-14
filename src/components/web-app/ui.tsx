@@ -1,9 +1,9 @@
 "use client";
 
-import { AlertCircle, ChevronLeft, ChevronRight, Paper } from "@getpapillon/papicons";
+import { AlertCircle, Calendar, ChevronLeft, ChevronRight, Paper } from "@getpapillon/papicons";
 import DOMPurify from "dompurify";
 import { motion, useReducedMotion } from "motion/react";
-import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Spinner } from "@/components/ui/spinner";
 import { type AttachmentDTO, CourseState, type PeriodDTO } from "@/lib/pronote/types";
 import { type ApiFailure, sessionLostCodes } from "./api";
@@ -181,13 +181,54 @@ export function Attachments({ files }: { files: AttachmentDTO[] }) {
   );
 }
 
-export function WeekNav({ week, onChange }: { week: Date; onChange: (week: Date) => void }) {
+export function WeekNav({
+  week,
+  onChange,
+  calendar = false,
+}: {
+  week: Date;
+  onChange: (week: Date) => void;
+  calendar?: boolean;
+}) {
   const { t, locale } = useWebApp();
+  const picker = useRef<HTMLInputElement>(null);
+  const pad = (value: number) => String(value).padStart(2, "0");
+  const inputValue = `${week.getFullYear()}-${pad(week.getMonth() + 1)}-${pad(week.getDate())}`;
   const current = startOfWeek(new Date()).getTime() === week.getTime();
   const button = "flex size-10 items-center justify-center rounded-full border border-foreground/10 bg-surface transition-colors hover:bg-foreground/10";
 
   return (
     <div className="flex items-center gap-2">
+      {calendar && (
+        <span className="relative">
+          <button
+            type="button"
+            aria-label={t.common.pickDate}
+            title={t.common.pickDate}
+            className={button}
+            onClick={() => {
+              const input = picker.current;
+              if (!input) return;
+              if (typeof input.showPicker === "function") input.showPicker();
+              else input.focus();
+            }}
+          >
+            <Calendar className="size-5" />
+          </button>
+          <input
+            ref={picker}
+            type="date"
+            tabIndex={-1}
+            aria-hidden
+            value={inputValue}
+            onChange={(event) => {
+              const [year, month, day] = event.target.value.split("-").map(Number);
+              if (year && month && day) onChange(startOfWeek(new Date(year, month - 1, day)));
+            }}
+            className="pointer-events-none absolute bottom-0 left-0 size-0 opacity-0"
+          />
+        </span>
+      )}
       <button type="button" aria-label={t.common.previousWeek} className={button} onClick={() => onChange(addDays(week, -7))}>
         <ChevronLeft className="size-5" />
       </button>
