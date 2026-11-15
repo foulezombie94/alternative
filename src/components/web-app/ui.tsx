@@ -353,12 +353,12 @@ export function WeekNav({
   const button = "flex size-10 items-center justify-center rounded-full border border-foreground/10 bg-surface transition-colors hover:bg-foreground/10";
 
   return (
-    <div className="flex items-center gap-2 max-sm:w-full max-sm:justify-between">
+    <div className="flex flex-wrap items-center gap-2 max-sm:w-full">
       {calendar && <WeekPicker week={week} onChange={onChange} />}
       <button type="button" aria-label={t.common.previousWeek} className={button} onClick={() => onChange(addDays(week, -7))}>
         <ChevronLeft className="size-5" />
       </button>
-      <span className="min-w-36 text-center font-medium">
+      <span className="min-w-0 truncate text-center font-medium max-sm:flex-1 sm:min-w-36">
         {current ? t.common.thisWeek : `${t.common.weekOf} ${formatShortDate(week, locale)}`}
       </span>
       <button type="button" aria-label={t.common.nextWeek} className={button} onClick={() => onChange(addDays(week, 7))}>
@@ -367,7 +367,7 @@ export function WeekNav({
       {!current && (
         <button
           type="button"
-          className="rounded-md border border-foreground/10 bg-surface px-4 py-2 text-sm font-medium transition-colors hover:bg-foreground/10"
+          className="rounded-md border border-foreground/10 bg-surface px-4 py-2 text-sm font-medium transition-colors hover:bg-foreground/10 max-sm:w-full"
           onClick={() => onChange(startOfWeek(new Date()))}
         >
           {t.common.thisWeek}

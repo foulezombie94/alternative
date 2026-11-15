@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, ChevronLeft, Newspaper, Paper, Pie, Search } from "@getpapillon/papicons";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { AttachmentDTO, NewsDetailDTO, NewsDTO } from "@/lib/pronote/types";
 import { ApiFailure, call, sessionLostCodes, useApi } from "./api";
 import { useWebApp } from "./context";
@@ -79,6 +79,7 @@ function Row({ item, active, onSelect }: { item: NewsDTO; active: boolean; onSel
   return (
     <button
       type="button"
+      data-news-id={item.id}
       onClick={onSelect}
       aria-current={active}
       className={`flex w-full items-start gap-3 rounded-lg border bg-surface p-3 text-left transition-colors ${
@@ -246,6 +247,32 @@ export function WebAppNews() {
   const state = useApi<NewsDTO[]>("news");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [opened, setOpened] = useState(false);
+  const listScroll = useRef<{ top: number; id: string } | null>(null);
+  const pendingScroll = useRef<"reader" | "list" | null>(null);
+
+  const closeReader = useCallback(() => {
+    pendingScroll.current = "list";
+    setOpened(false);
+  }, []);
+
+  useLayoutEffect(() => {
+    const target = pendingScroll.current;
+    pendingScroll.current = null;
+    if (target === "reader") window.scrollTo({ top: 0, behavior: "instant" });
+    if (target === "list" && listScroll.current) {
+      const { top, id } = listScroll.current;
+      window.scrollTo({ top, behavior: "instant" });
+      document.querySelector<HTMLElement>(`[data-news-id="${CSS.escape(id)}"]`)?.focus({ preventScroll: true });
+    }
+  }, [opened]);
+
+  useEffect(() => {
+    const onPop = () => {
+      if (window.location.hash !== "#lecture") closeReader();
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, [closeReader]);
   const [filter, setFilter] = useState<FilterId>("all");
   const [search, setSearch] = useState("");
   const [debug, setDebug] = useState<{ id: string; data: Debug } | null>(null);
@@ -361,9 +388,12 @@ export function WebAppNews() {
                             active={item.id === selected?.id}
                             onSelect={() => {
                               setSelectedId(item.id);
-                              setOpened(true);
                               document.getElementById("news-reader")?.scrollTo({ top: 0 });
-                              if (window.matchMedia("(max-width: 63.99rem)").matches) window.scrollTo({ top: 0 });
+                              if (!window.matchMedia("(max-width: 63.99rem)").matches) return;
+                              listScroll.current = { top: window.scrollY, id: item.id };
+                              pendingScroll.current = "reader";
+                              if (window.location.hash !== "#lecture") window.history.pushState(null, "", "#lecture");
+                              setOpened(true);
                             }}
                           />
                         </li>
@@ -381,8 +411,8 @@ export function WebAppNews() {
                 <button
                   type="button"
                   onClick={() => {
-                    setOpened(false);
-                    window.scrollTo({ top: 0 });
+                    if (window.location.hash === "#lecture") window.history.back();
+                    else closeReader();
                   }}
                   className="mb-5 flex items-center gap-1 text-sm font-medium text-foreground/60 transition-colors hover:text-foreground lg:hidden"
                 >
