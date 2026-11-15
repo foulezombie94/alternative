@@ -28,6 +28,14 @@ function readSavedView(): View | null {
 
 const noSubscription = () => () => {};
 
+const desktopQuery = "(min-width: 64rem)";
+
+function subscribeDesktop(onChange: () => void) {
+  const media = window.matchMedia(desktopQuery);
+  media.addEventListener("change", onChange);
+  return () => media.removeEventListener("change", onChange);
+}
+
 type Gap = { kind: "lunch" | "free"; from: Date; to: Date; minutes: number };
 
 const lunchWindow = { start: 11.5, end: 14 };
@@ -330,7 +338,8 @@ export function WebAppTimetable() {
   const [dayIndex, setDayIndex] = useState(() => Math.min(Math.max((new Date().getDay() + 6) % 7, 0), 4));
   const savedView = useSyncExternalStore(noSubscription, readSavedView, () => null);
   const [chosenView, setChosenView] = useState<View | null>(null);
-  const view = chosenView ?? savedView ?? "day";
+  const desktop = useSyncExternalStore(subscribeDesktop, () => window.matchMedia(desktopQuery).matches, () => false);
+  const view = desktop ? "week" : (chosenView ?? savedView ?? "day");
   const [selected, setSelected] = useState<CourseDTO | null>(null);
   const now = useNow();
   const range = useMemo(
@@ -357,7 +366,7 @@ export function WebAppTimetable() {
   return (
     <>
       <PageHeader title={t.nav.timetable}>
-        <ViewToggle view={view} onChange={changeView} />
+        {!desktop && <ViewToggle view={view} onChange={changeView} />}
         <WeekNav week={week} onChange={changeWeek} />
       </PageHeader>
       <Async state={state}>
