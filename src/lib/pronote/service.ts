@@ -24,7 +24,7 @@ import type {
 export interface SchoolService {
   profile(): Promise<ProfileDTO>;
   account(): Promise<AccountDTO>;
-  photo(): Promise<{ src: string | null }>;
+  photo(): Promise<{ src: string | null; reason?: string }>;
   timetable(from: Date, to: Date): Promise<CourseDTO[]>;
   holidays(): Promise<HolidayDTO[]>;
   upcomingTests(): Promise<UpcomingTestsDTO>;

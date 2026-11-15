@@ -195,6 +195,14 @@ async function settleLogin(
 
 const iso = (date: Date) => date.toISOString();
 
+function imageType(bytes: Uint8Array) {
+  if (bytes[0] === 0xff && bytes[1] === 0xd8) return "image/jpeg";
+  if (bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47) return "image/png";
+  if (bytes[0] === 0x47 && bytes[1] === 0x49 && bytes[2] === 0x46) return "image/gif";
+  if (bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50) return "image/webp";
+  return null;
+}
+
 const surveyKinds: Record<number, SurveyQuestionKind> = { 1: "text", 2: "single", 3: "multiple" };
 
 function surveyQuestion(question: NewsQuestion): SurveyQuestionDTO {
@@ -404,27 +412,37 @@ export class PronoteService implements SchoolService {
     };
   }
 
-  private photoCache?: Promise<{ src: string | null }>;
+  private photoCache?: Promise<{ src: string | null; reason?: string }>;
 
   photo() {
-    this.photoCache ??= this.run(async (handle) => {
+    this.photoCache ??= this.run(async (handle): Promise<{ src: string | null; reason?: string }> => {
       const embedded = (handle.userResource as { photoBase64?: string }).photoBase64?.replace(/\s/g, "");
       if (embedded) {
         const type = embedded.startsWith("/9j/") ? "image/jpeg" : embedded.startsWith("R0lG") ? "image/gif" : "image/png";
         return { src: `data:${type};base64,${embedded}` };
       }
       const url = handle.userResource.profilePicture?.url;
-      if (!url) return { src: null };
+      if (!url) return { src: null, reason: "noPhoto" };
       const response = await fetch(url, { headers: { "User-Agent": userAgent }, signal: AbortSignal.timeout(15_000) });
-      const type = response.headers.get("content-type")?.split(";")[0] ?? "";
-      if (!response.ok || !type.startsWith("image/")) return { src: null };
-      const buffer = await response.arrayBuffer();
-      if (buffer.byteLength > 1024 * 1024) return { src: null };
-      return { src: `data:${type};base64,${Buffer.from(buffer).toString("base64")}` };
-    }).catch((error) => {
-      this.photoCache = undefined;
-      throw error;
-    });
+      if (!response.ok) return { src: null, reason: `status ${response.status}` };
+      const bytes = new Uint8Array(await response.arrayBuffer());
+      if (bytes.byteLength === 0 || bytes.byteLength > 1024 * 1024) return { src: null, reason: `size ${bytes.byteLength}` };
+      const type = imageType(bytes);
+      if (!type) {
+        const head = new TextDecoder().decode(bytes.slice(0, 80)).replace(/[^\x20-\x7e]/g, ".");
+        return { src: null, reason: `type ${response.headers.get("content-type")} ${head}` };
+      }
+      return { src: `data:${type};base64,${Buffer.from(bytes).toString("base64")}` };
+    }).then(
+      (result) => {
+        if (!result.src) this.photoCache = undefined;
+        return result;
+      },
+      (error) => {
+        this.photoCache = undefined;
+        throw error;
+      },
+    );
     return this.photoCache;
   }
 
