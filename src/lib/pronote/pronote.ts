@@ -5,6 +5,8 @@ import {
   AssignmentReturnKind,
   assignmentStatus,
   assignmentsFromIntervals,
+  bulletinBIAPdf,
+  casierRaw,
   cleanURL,
   clearPresenceInterval,
   createSessionHandle,
@@ -58,6 +60,7 @@ import {
   CourseState,
   type Feature,
   type PeriodsDTO,
+  type ReportFileDTO,
   type Score,
 } from "./types";
 
@@ -356,6 +359,7 @@ export class PronoteService implements SchoolService {
     for (const tab of this.handle.user.authorizations.tabs) {
       const feature = tabFeatures[tab];
       if (feature) available.add(feature);
+      if ((tab as number) === 148) available.add("documents");
     }
     const name = user.name;
     const lastName = /[A-ZÀ-ÖØ-Þ]{2,}(?:[\s'-]+[A-ZÀ-ÖØ-Þ]{2,})*/.exec(name)?.[0] ?? "";
@@ -632,6 +636,41 @@ export class PronoteService implements SchoolService {
 
   async reportCardPeriods() {
     return this.periods(TabLocation.Gradebook);
+  }
+
+  private async reportFiles(handle: SessionHandle) {
+    const raw = await casierRaw(handle);
+    const box = raw.listeBulletinsBIA as { V?: unknown } | unknown[] | undefined;
+    const list = (Array.isArray(box) ? box : Array.isArray(box?.V) ? box.V : []) as Record<string, unknown>[];
+    const text = (value: unknown) => (typeof value === "string" ? value : "");
+    return list.map((entry) => {
+      const start = entry.debutPeriodeNotation as { V?: string } | string | undefined;
+      const day = typeof start === "string" ? start : start?.V;
+      const [d, m, y] = (day ?? "").split(" ")[0].split("/").map(Number);
+      const file: ReportFileDTO = {
+        key: [entry.libelleAnnee, entry.libelleClasse, entry.libellePeriodeNotation, entry.libelle, entry.nomFichier].map(text).join("|"),
+        kind: text(entry.libelle),
+        year: typeof entry.annee === "number" ? entry.annee : Number(entry.annee) || 0,
+        yearLabel: text(entry.libelleAnnee),
+        className: text(entry.libelleClasse),
+        period: text(entry.libellePeriodeNotation),
+        periodStart: y ? new Date(Date.UTC(y, m - 1, d, 12)).toISOString() : undefined,
+        fileName: text(entry.nomFichier),
+      };
+      return { file, entry };
+    });
+  }
+
+  documents() {
+    return this.run(async (handle) => ({ reports: (await this.reportFiles(handle)).map(({ file }) => file) }));
+  }
+
+  documentPdf(key: string) {
+    return this.run(async (handle) => {
+      const match = (await this.reportFiles(handle)).find(({ file }) => file.key === key);
+      if (!match) throw new NotSupportedError("documents");
+      return { url: await bulletinBIAPdf(handle, match.entry) };
+    });
   }
 
   reportCard(periodId: string) {

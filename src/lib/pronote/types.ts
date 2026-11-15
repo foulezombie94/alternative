@@ -1,4 +1,4 @@
-export const features = ["timetable", "homework", "grades", "attendance", "news", "chat", "contents", "report", "evaluations"] as const;
+export const features = ["timetable", "homework", "grades", "attendance", "news", "chat", "contents", "report", "evaluations", "documents"] as const;
 
 export type Feature = (typeof features)[number];
 
@@ -247,3 +247,16 @@ export type ErrorCode =
   | "ent_required"
   | "unsupported"
   | "unknown";
+
+export type ReportFileDTO = {
+  key: string;
+  kind: string;
+  year: number;
+  yearLabel: string;
+  className: string;
+  period: string;
+  periodStart?: string;
+  fileName: string;
+};
+
+export type DocumentsDTO = { reports: ReportFileDTO[] };

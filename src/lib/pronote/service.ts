@@ -12,6 +12,7 @@ import type {
   HomeworkDTO,
   NewsDTO,
   PeriodsDTO,
+  DocumentsDTO,
   ReportCardDTO,
   UpcomingTestsDTO,
   ProfileDTO,
@@ -32,6 +33,8 @@ export interface SchoolService {
   lessonContents(from: Date, to: Date): Promise<LessonContentDTO[]>;
   reportCardPeriods(): Promise<PeriodsDTO>;
   reportCard(periodId: string): Promise<ReportCardDTO>;
+  documents(): Promise<DocumentsDTO>;
+  documentPdf(key: string): Promise<{ url: string }>;
   evaluationPeriods(): Promise<PeriodsDTO>;
   evaluations(periodId: string): Promise<EvaluationDTO[]>;
   attendancePeriods(): Promise<PeriodsDTO>;

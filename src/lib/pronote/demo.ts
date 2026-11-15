@@ -13,6 +13,7 @@ import {
   type NewsDTO,
   type PeriodDTO,
   type RecipientDTO,
+  type ReportFileDTO,
 } from "./types";
 
 const lessons = [
@@ -337,6 +338,34 @@ export class DemoService implements SchoolService {
 
   async reportCardPeriods() {
     return this.gradePeriods();
+  }
+
+  async documents() {
+    const now = new Date();
+    const start = now.getMonth() >= 8 ? now.getFullYear() : now.getFullYear() - 1;
+    const reports: ReportFileDTO[] = [];
+    for (const [offset, className] of [[1, "2NDE 4"], [2, "3E B"]] as const) {
+      const year = start - offset;
+      for (const [index, period] of ["Trimestre 1", "Trimestre 2", "Trimestre 3"].entries()) {
+        for (const kind of ["Bulletin de notes", "Bilan périodique"]) {
+          reports.push({
+            key: `${year}|${period}|${kind}`,
+            kind,
+            year,
+            yearLabel: `${year}-${year + 1}`,
+            className,
+            period,
+            periodStart: new Date(Date.UTC(year, 8 + index * 3, 1, 12)).toISOString(),
+            fileName: `MARTIN Camille-${period}-${className}.pdf`,
+          });
+        }
+      }
+    }
+    return { reports };
+  }
+
+  async documentPdf(): Promise<{ url: string }> {
+    return { url: "" };
   }
 
   async reportCard(periodId: string) {

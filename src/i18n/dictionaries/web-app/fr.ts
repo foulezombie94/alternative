@@ -33,6 +33,7 @@ const webAppFr = {
     demoBadge: "Mode démo",
     backToSite: "Retour au site",
     contents: "Contenus et ressources",
+    documents: "Bulletins et bilans",
     report: "Bulletin",
     evaluations: "Évaluations",
     groupTextbook: "Cahier de textes",
@@ -40,6 +41,15 @@ const webAppFr = {
     groupSkills: "Compétences",
     groupSchoolLife: "Vie scolaire",
     groupCommunication: "Communication",
+  },
+  documents: {
+    year: "Année",
+    pdf: "PDF · ouvrir",
+    opening: "Ouverture…",
+    none: "Aucun bulletin ni bilan n’est disponible dans ton espace documents.",
+    failed: "Pronote n’a pas pu générer ce PDF. Réessaie dans un instant.",
+    demo: "Pas de PDF en mode démo.",
+    hint: "Ce sont les bulletins et bilans déposés par ton établissement, y compris ceux des années précédentes.",
   },
   contents: {
     byWeek: "Par semaine",

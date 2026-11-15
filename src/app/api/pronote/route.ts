@@ -219,6 +219,10 @@ async function runAction(service: SchoolService, action: string, body: Body): Pr
       return service.reportCardPeriods();
     case "reportCard":
       return service.reportCard(text(body, "periodId"));
+    case "documents":
+      return service.documents();
+    case "documentPdf":
+      return service.documentPdf(text(body, "key"));
     case "evaluationPeriods":
       return service.evaluationPeriods();
     case "evaluations":

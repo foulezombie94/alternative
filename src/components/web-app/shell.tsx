@@ -1,21 +1,6 @@
 "use client";
 
-import {
-  ArrowLeft,
-  Bookmark,
-  Calendar,
-  Chair,
-  Cross,
-  Grades,
-  Home,
-  Logout,
-  Menu,
-  Newspaper,
-  Paper,
-  Star,
-  Tasks,
-  TextBubble,
-} from "@getpapillon/papicons";
+import { Archive, ArrowLeft, Bookmark, Calendar, Chair, Cross, Grades, Home, Logout, Menu, Newspaper, Paper, Star, Tasks, TextBubble } from "@getpapillon/papicons";
 import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -41,6 +26,7 @@ const sections: { path: string; key: NavKey; icon: Icon; feature?: Feature; grou
   { path: "/homework", key: "homework", icon: Tasks, feature: "homework", group: "groupTextbook" },
   { path: "/grades", key: "grades", icon: Grades, feature: "grades", group: "groupGrades" },
   { path: "/report", key: "report", icon: Bookmark, feature: "report", group: "groupGrades" },
+  { path: "/documents", key: "documents", icon: Archive, feature: "documents", group: "groupGrades" },
   { path: "/evaluations", key: "evaluations", icon: Star, feature: "evaluations", group: "groupSkills" },
   { path: "/timetable", key: "timetable", icon: Calendar, feature: "timetable", group: "groupSchoolLife" },
   { path: "/attendance", key: "attendance", icon: Chair, feature: "attendance", group: "groupSchoolLife" },

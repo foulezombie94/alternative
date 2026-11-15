@@ -35,6 +35,7 @@ const webAppEn: WebAppDictionary = {
     demoBadge: "Demo mode",
     backToSite: "Back to the website",
     contents: "Lesson content",
+    documents: "Report cards",
     report: "Report card",
     evaluations: "Evaluations",
     groupTextbook: "Coursework",
@@ -42,6 +43,15 @@ const webAppEn: WebAppDictionary = {
     groupSkills: "Skills",
     groupSchoolLife: "School life",
     groupCommunication: "Communication",
+  },
+  documents: {
+    year: "Year",
+    pdf: "PDF · open",
+    opening: "Opening…",
+    none: "No report cards are available in your documents.",
+    failed: "Pronote could not generate this PDF. Try again in a moment.",
+    demo: "No PDF in demo mode.",
+    hint: "These are the report cards your school shared, including those from previous years.",
   },
   contents: {
     byWeek: "By week",
