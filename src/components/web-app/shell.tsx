@@ -165,7 +165,7 @@ export function WebAppShell({ t, locale, children }: { t: WebAppDictionary; loca
   return (
     <WebAppContext value={{ t, locale, profile: user, sessionLost }}>
       <div className="min-h-dvh lg:flex">
-        <aside className="sticky top-0 hidden h-dvh w-72 shrink-0 flex-col gap-1 border-r border-foreground/5 bg-background p-5 lg:flex">
+        <aside className="sticky top-0 z-40 hidden h-dvh w-72 shrink-0 flex-col gap-1 border-r border-foreground/5 bg-background p-5 lg:flex">
           <div className="mb-4 flex items-center justify-between gap-2 pl-2">
             <span className="flex items-center gap-0.5">
               <Link href={base as Route} aria-label={t.nav.home}>
@@ -285,7 +285,7 @@ function MobileBar({
 
   return (
     <div className="lg:hidden">
-      <header className="sticky top-0 z-30 flex items-center gap-3 border-b border-foreground/5 bg-background/90 px-3 py-2 backdrop-blur">
+      <header className="sticky top-0 z-40 flex items-center gap-3 border-b border-foreground/5 bg-background/90 px-3 py-2 backdrop-blur">
         <button
           type="button"
           aria-label={t.nav.openMenu}

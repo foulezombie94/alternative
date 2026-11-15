@@ -34,12 +34,13 @@ type Item = {
 type Memory = { since: number; seen: string[] };
 
 const icons = { grade: Grades, news: Newspaper, chat: TextBubble, canceled: Calendar };
+const storageVersion = 2;
 const refreshEvery = 10 * 60 * 1000;
 const firstLookBack = 7 * 24 * 60 * 60 * 1000;
 const keepEarlier = 14 * 24 * 60 * 60 * 1000;
 
 function storageKey(owner: string) {
-  return `alternative.notifications.${owner}`;
+  return `alternative.notifications.v${storageVersion}.${owner}`;
 }
 
 function readMemory(owner: string): Memory {
@@ -98,7 +99,7 @@ export function useNotifications(owner: string, base: string, t: WebAppDictionar
     for (const grade of feed.grades) {
       if (!grade.date) continue;
       const date = new Date(grade.date).getTime();
-      const key = `grade:${grade.id}`;
+      const key = `grade:${grade.subject}|${grade.date}|${grade.description}|${grade.value.value ?? grade.value.label}|${grade.outOf.value}`;
       const score = `${formatScore(grade.value, locale)}/${formatScore(grade.outOf, locale)}`;
       list.push({
         key,
@@ -113,7 +114,7 @@ export function useNotifications(owner: string, base: string, t: WebAppDictionar
     }
 
     for (const entry of feed.news) {
-      const key = `news:${entry.id}`;
+      const key = `news:${entry.title}|${entry.date}`;
       list.push({
         key,
         kind: "news",
@@ -126,7 +127,7 @@ export function useNotifications(owner: string, base: string, t: WebAppDictionar
     }
 
     for (const chat of feed.chats) {
-      const key = `chat:${chat.id}:${Math.floor(new Date(chat.date).getTime() / 60000)}`;
+      const key = `chat:${chat.subject}|${chat.with}|${Math.floor(new Date(chat.date).getTime() / 60000)}`;
       list.push({
         key,
         kind: "chat",
@@ -142,7 +143,7 @@ export function useNotifications(owner: string, base: string, t: WebAppDictionar
     }
 
     for (const course of feed.canceled) {
-      const key = `canceled:${course.id}`;
+      const key = `canceled:${course.subject}|${course.from}`;
       list.push({
         key,
         kind: "canceled",
@@ -156,7 +157,8 @@ export function useNotifications(owner: string, base: string, t: WebAppDictionar
     }
 
     const now = feed.fetchedAt;
-    return list
+    const unique = new Map(list.map((item) => [item.key, item]));
+    return [...unique.values()]
       .filter((item) => item.fresh || (item.kind === "canceled" ? true : now - item.date < keepEarlier))
       .sort((a, b) => {
         if (a.fresh !== b.fresh) return Number(b.fresh) - Number(a.fresh);
