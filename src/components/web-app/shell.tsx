@@ -23,6 +23,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Fragment, type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import type { Locale } from "@/i18n/config";
 import type { WebAppDictionary } from "@/i18n/dictionaries/web-app/fr";
+import { NotificationBell, useNotifications } from "./notifications";
 import { easeOutPapillon } from "@/lib/motion";
 import type { AccountDTO, Feature, ProfileDTO } from "@/lib/pronote/types";
 import { call, useApi } from "./api";
@@ -54,6 +55,7 @@ export function WebAppShell({ t, locale, children }: { t: WebAppDictionary; loca
   const base = `/${locale}/app`;
 
   const sessionLost = useCallback(() => window.location.replace(`${base}/login`), [base]);
+  const notifications = useNotifications(profile.data?.name ?? "", base, t, locale);
 
   const logout = async () => {
     await call("logout").catch(() => undefined);
@@ -157,17 +159,20 @@ export function WebAppShell({ t, locale, children }: { t: WebAppDictionary; loca
   );
 
   const demoBadge = user.demo && (
-    <span className="rounded-md bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">{t.nav.demoBadge}</span>
+    <span className="rounded-md bg-primary/10 px-2.5 py-1 text-xs font-semibold whitespace-nowrap text-primary">{t.nav.demoBadge}</span>
   );
 
   return (
     <WebAppContext value={{ t, locale, profile: user, sessionLost }}>
       <div className="min-h-dvh lg:flex">
         <aside className="sticky top-0 hidden h-dvh w-72 shrink-0 flex-col gap-1 border-r border-foreground/5 bg-background p-5 lg:flex">
-          <div className="mb-4 flex items-center justify-between gap-3 px-2">
-            <Link href={base as Route} aria-label={t.nav.home}>
-              <Wordmark name={t.brand} className="text-lg" />
-            </Link>
+          <div className="mb-4 flex items-center justify-between gap-2 pl-2">
+            <span className="flex items-center gap-0.5">
+              <Link href={base as Route} aria-label={t.nav.home}>
+                <Wordmark name={t.brand} className="text-lg" />
+              </Link>
+              <NotificationBell state={notifications} t={t} locale={locale} />
+            </span>
             {demoBadge}
           </div>
           <nav aria-label={t.nav.label} className="scrollbar-none flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto">
@@ -184,6 +189,7 @@ export function WebAppShell({ t, locale, children }: { t: WebAppDictionary; loca
           pathname={pathname}
           nav={navList(true)}
           account={account}
+          bell={<NotificationBell state={notifications} t={t} locale={locale} align="right" />}
         />
 
         {accountOpen && <AccountDialog onClose={() => setAccountOpen(false)} />}
@@ -246,8 +252,10 @@ function MobileBar({
   pathname,
   nav,
   account,
+  bell,
 }: {
   t: WebAppDictionary;
+  bell: ReactNode;
   title: string;
   home: string;
   badge: ReactNode;
@@ -293,6 +301,7 @@ function MobileBar({
         </button>
         <p className="min-w-0 flex-1 truncate text-lg font-semibold">{title}</p>
         {badge}
+        {bell}
       </header>
 
       <AnimatePresence>

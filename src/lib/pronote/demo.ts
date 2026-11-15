@@ -486,9 +486,11 @@ export class DemoService implements SchoolService {
   }
 
   async chats(): Promise<ChatDTO[]> {
+    const today = new Date();
+    today.setHours(9, 30, 0, 0);
     const base: ChatDTO[] = [
-      { id: "demo-chat-0", subject: "Sortie au musée", with: "Mme Bernard", date: addDays(new Date(), -1).toISOString(), unread: 1, messages: 2 },
-      { id: "demo-chat-1", subject: "Exposé d'anglais", with: "Mme Martin", date: addDays(new Date(), -6).toISOString(), unread: 0, messages: 1 },
+      { id: "demo-chat-0", subject: "Sortie au musée", with: "Mme Bernard", date: addDays(today, -1).toISOString(), unread: 1, messages: 2 },
+      { id: "demo-chat-1", subject: "Exposé d'anglais", with: "Mme Martin", date: addDays(today, -6).toISOString(), unread: 0, messages: 1 },
     ];
     return [...this.created, ...base].map((chat) => ({
       ...chat,

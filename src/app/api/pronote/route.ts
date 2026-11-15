@@ -41,7 +41,7 @@ import {
   takeChallenge,
 } from "@/lib/pronote/store";
 import { shiftDates, toSchoolClock } from "@/lib/pronote/time";
-import type { ApiError, ErrorCode } from "@/lib/pronote/types";
+import { type ApiError, CourseState, type ErrorCode, type PeriodsDTO } from "@/lib/pronote/types";
 
 type Body = Record<string, unknown>;
 
@@ -58,6 +58,47 @@ const date = (body: Body, key: string) => {
   if (Number.isNaN(value.getTime())) throw new InputError(key);
   return toSchoolClock(value);
 };
+
+async function notifications(service: SchoolService) {
+  const safe = async <T,>(task: () => Promise<T>, fallback: T): Promise<T> => {
+    try {
+      return await task();
+    } catch (error) {
+      if (error instanceof SessionExpiredError) throw error;
+      return fallback;
+    }
+  };
+
+  const now = toSchoolClock(new Date());
+  const later = new Date(now);
+  later.setDate(later.getDate() + 14);
+
+  const periods = await safe(() => service.gradePeriods(), { periods: [] } as PeriodsDTO);
+  const periodId = periods.defaultId ?? periods.periods.at(-1)?.id;
+  const grades = periodId ? await safe(() => service.grades(periodId), null) : null;
+  const news = await safe(() => service.news(), []);
+  const chats = await safe(() => service.chats(), []);
+  const courses = await safe(() => service.timetable(now, later), []);
+
+  return {
+    grades: (grades?.subjects ?? []).flatMap((subject) =>
+      subject.grades.map((grade) => ({
+        id: grade.id,
+        subject: subject.name,
+        color: subject.color,
+        description: grade.description,
+        value: grade.value,
+        outOf: grade.outOf,
+        date: grade.date,
+      })),
+    ),
+    news: news.map(({ id, title, author, date, read }) => ({ id, title, author, date, read })),
+    chats: chats.map(({ id, subject, with: other, date, unread }) => ({ id, subject, with: other, date, unread })),
+    canceled: courses
+      .filter((course) => course.state === CourseState.Canceled && new Date(course.to) > now)
+      .map(({ id, subject, color, from, to, statusText }) => ({ id, subject, color, from, to, statusText })),
+  };
+}
 
 const textList = (body: Body, key: string) => {
   const value = body[key];
@@ -223,6 +264,8 @@ async function runAction(service: SchoolService, action: string, body: Body): Pr
       );
     case "chats":
       return service.chats();
+    case "notifications":
+      return notifications(service);
     case "chatMessages":
       return service.chatMessages(text(body, "id"));
     case "sendMessage":
