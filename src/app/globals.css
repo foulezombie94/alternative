@@ -3,6 +3,9 @@
 @custom-variant footer-flat (body:has(main:not([style]) > [data-curved]:last-child) &);
 
 @theme {
+  --color-impact-up: #2e8900;
+  --color-impact-down: #990000;
+  --color-impact-neutral: #757575;
   --font-sans: var(--font-sn-pro), ui-sans-serif, system-ui, sans-serif;
   /* Figma's SN Pro styles, converted to the Google Fonts weight axis */
   --font-weight-book: 411;

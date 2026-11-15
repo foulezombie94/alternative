@@ -183,6 +183,8 @@ const webAppFr = {
     noHomework: "Aucun devoir cette semaine.",
   },
   grades: {
+    influence: "Influence",
+    groupAverage: "Moyenne du groupe",
     estimated: "estimée",
     bySchool: "par l’établissement",
     estimatedOn: "estimée au",

@@ -185,6 +185,8 @@ const webAppEn: WebAppDictionary = {
     noHomework: "No homework this week.",
   },
   grades: {
+    influence: "Influence",
+    groupAverage: "Group average",
     estimated: "estimated",
     bySchool: "from your school",
     estimatedOn: "estimated on",

@@ -69,3 +69,39 @@ export function averageHistory<T extends Countable & { subjectId: string; date?:
   }
   return points;
 }
+
+type InfluenceGrade = Countable & { id: string; average: GradeDTO["average"] };
+
+export function gradeInfluence(
+  subjects: { id: string; grades: InfluenceGrade[] }[],
+  subjectId: string,
+  gradeId: string,
+  kind: "student" | "class",
+): number {
+  const averageOf = (grades: InfluenceGrade[]) =>
+    kind === "student"
+      ? subjectAverage(grades)
+      : subjectAverage(
+          grades.map((grade) => ({
+            value: grade.average,
+            outOf: grade.outOf,
+            coefficient: grade.coefficient,
+            bonus: false,
+            optional: false,
+          })),
+        );
+
+  const averages = new Map(subjects.map((subject) => [subject.id, averageOf(subject.grades)]));
+  if (averages.get(subjectId) == null) return 0;
+
+  const mean = (values: number[]) => (values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0);
+  const current = mean([...averages.values()].filter((value) => value !== null));
+
+  const subject = subjects.find((entry) => entry.id === subjectId);
+  if (!subject) return 0;
+  const without = averageOf(subject.grades.filter((grade) => grade.id !== gradeId));
+  const others = [...averages].filter(([id, value]) => id !== subjectId && value !== null).map(([, value]) => value!);
+  if (without !== null) others.push(without);
+
+  return Number((current - mean(others)).toFixed(2));
+}

@@ -1,9 +1,9 @@
 "use client";
 
-import { ChevronDown } from "@getpapillon/papicons";
+import { Apple, ChevronDown, Grades } from "@getpapillon/papicons";
 import { useState } from "react";
 import type { GradeDTO, GradesDTO, PeriodsDTO, SubjectDTO } from "@/lib/pronote/types";
-import { subjectsAverage } from "@/lib/pronote/average";
+import { gradeInfluence, subjectsAverage } from "@/lib/pronote/average";
 import { after, useApi } from "./api";
 import { GradesChart } from "./grades-chart";
 import { useWebApp } from "./context";
@@ -19,7 +19,33 @@ function Stat({ label, value }: { label: string; value: string }) {
   );
 }
 
-function GradeDetail({ grade, subject, onClose }: { grade: GradeDTO; subject: SubjectDTO; onClose: () => void }) {
+function Influence({ label, icon: Icon, value }: { label: string; icon: typeof Grades; value: number }) {
+  const { locale } = useWebApp();
+  const tone = value === 0 ? "text-impact-neutral bg-impact-neutral/15" : value > 0 ? "text-impact-up bg-impact-up/15" : "text-impact-down bg-impact-down/15";
+  const text = `${value >= 0 ? "+" : "−"}${Math.abs(value).toLocaleString(locale, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return (
+    <li className="flex items-center gap-3 px-4 py-3">
+      <Icon className="size-5 shrink-0 text-foreground/50" />
+      <span className="flex-1 font-medium">{label}</span>
+      <span className={`inline-flex min-w-16 items-baseline justify-center gap-1 rounded-full px-3 py-0.5 tabular-nums ${tone}`}>
+        <span className="font-semibold">{text}</span>
+        <span className="text-xs opacity-65">pts</span>
+      </span>
+    </li>
+  );
+}
+
+function GradeDetail({
+  grade,
+  subject,
+  subjects,
+  onClose,
+}: {
+  grade: GradeDTO;
+  subject: SubjectDTO;
+  subjects: SubjectDTO[];
+  onClose: () => void;
+}) {
   const { t, locale } = useWebApp();
   const files = [grade.subjectFile, grade.correctionFile].filter((file) => file !== undefined);
 
@@ -45,6 +71,23 @@ function GradeDetail({ grade, subject, onClose }: { grade: GradeDTO; subject: Su
           <span className="rounded-md bg-primary/10 px-3 py-1 text-sm text-primary">{t.grades.optional}</span>
         )}
       </div>
+      {grade.value.value !== null && (
+        <section className="mt-6">
+          <h3 className="mb-2 text-sm font-medium text-foreground/50">{t.grades.influence}</h3>
+          <ul className="divide-y divide-foreground/5 rounded-lg border border-foreground/10 bg-surface">
+            <Influence
+              label={t.grades.overall}
+              icon={Grades}
+              value={gradeInfluence(subjects, subject.id, grade.id, "student")}
+            />
+            <Influence
+              label={t.grades.groupAverage}
+              icon={Apple}
+              value={gradeInfluence(subjects, subject.id, grade.id, "class")}
+            />
+          </ul>
+        </section>
+      )}
       <Attachments files={files} />
     </Dialog>
   );
@@ -148,7 +191,12 @@ export function WebAppGrades() {
         }}
       </Async>
       {selected && (
-        <GradeDetail grade={selected.grade} subject={selected.subject} onClose={() => setSelected(null)} />
+        <GradeDetail
+          grade={selected.grade}
+          subject={selected.subject}
+          subjects={grades.data?.subjects ?? []}
+          onClose={() => setSelected(null)}
+        />
       )}
     </>
   );
