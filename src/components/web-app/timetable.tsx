@@ -52,12 +52,11 @@ function gapsBefore(courses: CourseDTO[]) {
   return gaps;
 }
 
-function GapRow({ gap, compact = false, grow }: { gap: Gap; compact?: boolean; grow?: number }) {
+function GapRow({ gap, compact = false }: { gap: Gap; compact?: boolean }) {
   const { t, locale } = useWebApp();
   return (
-    <li
-      style={grow ? { flex: `${grow} 1 auto` } : undefined}
-      className={`flex flex-col justify-center rounded-lg border border-dashed border-foreground/15 text-foreground/50 ${
+    <div
+      className={`flex w-full flex-col justify-center rounded-lg border border-dashed border-foreground/15 text-foreground/50 ${
         compact ? "px-1.5 py-1 text-xs max-sm:items-center sm:px-3 sm:py-2 sm:text-sm" : "px-4 py-2.5 text-sm"
       }`}
     >
@@ -66,7 +65,7 @@ function GapRow({ gap, compact = false, grow }: { gap: Gap; compact?: boolean; g
         {formatTime(gap.from, locale)} – {formatTime(gap.to, locale)} ·{" "}
         {formatDuration(gap.minutes, { hours: t.common.hours, minutes: t.common.minutes })}
       </span>
-    </li>
+    </div>
   );
 }
 
@@ -255,22 +254,30 @@ function CourseCard({
   );
 }
 
-function minutesOf(from: string | Date, to: string | Date) {
-  return Math.max(15, Math.round((new Date(to).getTime() - new Date(from).getTime()) / 60000));
+function clockMinutes(value: string | Date) {
+  const date = new Date(value);
+  return date.getHours() * 60 + date.getMinutes();
+}
+
+type DayRange = { start: number; end: number };
+
+function Spacer({ minutes }: { minutes: number }) {
+  if (minutes <= 0) return null;
+  return <li aria-hidden style={{ flex: `${minutes} 1 0px` }} />;
 }
 
 function DayCourses({
   list,
   holiday,
   compact,
-  fill = false,
+  range,
   now,
   onSelect,
 }: {
   list: CourseDTO[];
   holiday: HolidayDTO | undefined;
   compact: boolean;
-  fill?: boolean;
+  range?: DayRange;
   now: Date;
   onSelect: (course: CourseDTO) => void;
 }) {
@@ -282,14 +289,53 @@ function DayCourses({
   if (!list.length) {
     return <p className={`px-1 pb-2 text-foreground/40 ${compact ? "text-xs sm:text-sm" : "py-8 text-center"}`}>{t.common.empty}</p>;
   }
+  if (range) {
+    const rows: { course: CourseDTO; from: number; to: number; before: number }[] = [];
+    let cursor = range.start;
+    for (const course of list) {
+      const from = clockMinutes(course.from);
+      const to = Math.max(from + 15, clockMinutes(course.to));
+      rows.push({ course, from, to, before: Math.max(0, from - cursor) });
+      cursor = Math.max(cursor, to);
+    }
+    const after = Math.max(0, range.end - cursor);
+
+    return (
+      <ul className="flex flex-1 flex-col">
+        {rows.map(({ course, from, to, before }) => {
+          const gap = gaps.get(course.id);
+          return (
+            <Fragment key={course.id}>
+              {gap ? (
+                <li className="flex py-1" style={{ flex: `${before} 1 0px` }}>
+                  <GapRow gap={gap} compact />
+                </li>
+              ) : (
+                <Spacer minutes={before} />
+              )}
+              <li className="flex py-1" style={{ flex: `${to - from} 1 0px` }}>
+                <CourseCard course={course} compact={compact} now={now} onSelect={() => onSelect(course)} />
+              </li>
+            </Fragment>
+          );
+        })}
+        <Spacer minutes={after} />
+      </ul>
+    );
+  }
+
   return (
-    <ul className={`flex flex-col ${compact ? "gap-1 sm:gap-2" : "gap-2"} ${fill ? "flex-1" : ""}`}>
+    <ul className={`flex flex-col ${compact ? "gap-1 sm:gap-2" : "gap-2"}`}>
       {list.map((course) => {
         const gap = gaps.get(course.id);
         return (
           <Fragment key={course.id}>
-            {gap && <GapRow gap={gap} compact={compact} grow={fill ? gap.minutes : undefined} />}
-            <li className="flex" style={fill ? { flex: `${minutesOf(course.from, course.to)} 1 auto` } : undefined}>
+            {gap && (
+              <li>
+                <GapRow gap={gap} compact={compact} />
+              </li>
+            )}
+            <li>
               <CourseCard course={course} compact={compact} now={now} onSelect={() => onSelect(course)} />
             </li>
           </Fragment>
@@ -333,6 +379,12 @@ export function WebAppTimetable() {
           );
           const weekHolidays = days.map((day) => holidayOn(holidays.data, day));
           const coursesOn = (day: Date) => courses.filter((course) => sameDay(new Date(course.from), day));
+          const weekRange: DayRange | undefined = courses.length
+            ? {
+                start: Math.min(...courses.map((course) => clockMinutes(course.from))),
+                end: Math.max(...courses.map((course) => clockMinutes(course.to))),
+              }
+            : undefined;
 
           if (view === "day") {
             const index = Math.min(dayIndex, days.length - 1);
@@ -415,7 +467,7 @@ export function WebAppTimetable() {
                       list={coursesOn(day)}
                       holiday={weekHolidays[position]}
                       compact
-                      fill
+                      range={weekRange}
                       now={now}
                       onSelect={setSelected}
                     />
