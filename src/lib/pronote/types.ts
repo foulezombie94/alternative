@@ -160,7 +160,16 @@ export type UpcomingTestDTO = {
 
 export type UpcomingTestsDTO = { tests: UpcomingTestDTO[]; raw?: string };
 
-export type AbsenceDTO = { id: string; from: string; to: string; reason?: string; justified: boolean; minutes: number };
+export type AbsenceDTO = {
+  id: string;
+  from: string;
+  to: string;
+  reason?: string;
+  justified: boolean;
+  minutes: number;
+  parentsMustJustify?: boolean;
+  regularized?: boolean;
+};
 export type DelayDTO = { id: string; date: string; reason?: string; justified: boolean; minutes: number };
 export type PunishmentDTO = {
   id: string;

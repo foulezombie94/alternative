@@ -778,6 +778,8 @@ export class PronoteService implements SchoolService {
           reason: absence.reason,
           justified: absence.justified,
           minutes: absence.hoursMissed * 60 + absence.minutesMissed,
+          parentsMustJustify: absence.shouldParentsJustify,
+          regularized: absence.administrativelyFixed,
         })),
         delays: book.delays.filter((delay) => inPeriod(delay.date)).map((delay) => ({
           id: delay.id,
