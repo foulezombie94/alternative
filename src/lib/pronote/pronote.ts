@@ -408,6 +408,11 @@ export class PronoteService implements SchoolService {
 
   photo() {
     this.photoCache ??= this.run(async (handle) => {
+      const embedded = (handle.userResource as { photoBase64?: string }).photoBase64?.replace(/\s/g, "");
+      if (embedded) {
+        const type = embedded.startsWith("/9j/") ? "image/jpeg" : embedded.startsWith("R0lG") ? "image/gif" : "image/png";
+        return { src: `data:${type};base64,${embedded}` };
+      }
       const url = handle.userResource.profilePicture?.url;
       if (!url) return { src: null };
       const response = await fetch(url, { headers: { "User-Agent": userAgent }, signal: AbortSignal.timeout(15_000) });
