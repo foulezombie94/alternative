@@ -257,6 +257,7 @@ const webAppFr = {
     work: "Travail à faire",
     exclusion: "Exclusion",
     encouragement: "Encouragement",
+    remark: "Remarque",
     nothing: "Rien à signaler sur cette période.",
   },
   news: {

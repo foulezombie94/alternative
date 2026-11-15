@@ -86,19 +86,42 @@ function Chips<T extends string>({
   );
 }
 
+function Face({ happy }: { happy: boolean }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      aria-hidden
+      className={`size-7 shrink-0 ${happy ? "text-impact-up" : "text-impact-down"}`}
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+    >
+      <circle cx="12" cy="12" r="10" className="fill-current/10" />
+      <circle cx="8.5" cy="10" r="1.2" fill="currentColor" stroke="none" />
+      <circle cx="15.5" cy="10" r="1.2" fill="currentColor" stroke="none" />
+      <path d={happy ? "M7.5 14.5c1.2 1.6 2.7 2.4 4.5 2.4s3.3-.8 4.5-2.4" : "M7.5 17c1.2-1.6 2.7-2.4 4.5-2.4s3.3.8 4.5 2.4"} />
+    </svg>
+  );
+}
+
 function Item({
   title,
   detail,
   tag,
   tone,
+  icon,
 }: {
   title: string;
   detail?: ReactNode;
   tag?: string;
   tone?: "good" | "bad";
+  icon?: ReactNode;
 }) {
   return (
-    <li className="rounded-lg bg-background p-4">
+    <li className="flex gap-3 rounded-lg bg-background p-4">
+      {icon}
+      <div className="min-w-0 flex-1">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="font-medium">{title}</p>
         {tag && (
@@ -116,23 +139,33 @@ function Item({
       {detail && (
         <div className="mt-1 text-sm text-foreground/60">{detail}</div>
       )}
+      </div>
     </li>
   );
 }
 
-function AbsenceTotals({ absences, units }: { absences: AbsenceDTO[]; units: { hours: string; minutes: string } }) {
+function AbsenceTotals({
+  absences,
+  units,
+  status,
+}: {
+  absences: AbsenceDTO[];
+  units: { hours: string; minutes: string };
+  status: Status;
+}) {
   const { t } = useWebApp();
   const justified = absences.filter((absence) => absence.justified);
   const unjustified = absences.filter((absence) => !absence.justified);
   const sum = (list: AbsenceDTO[]) => list.reduce((total, absence) => total + absence.minutes, 0);
-  const tiles = [
+  const all = [
     { label: t.attendance.totalHours, list: absences, tone: "text-foreground" },
     { label: t.attendance.justifiedMany, list: justified, tone: "text-impact-up" },
     { label: t.attendance.unjustifiedMany, list: unjustified, tone: "text-impact-down" },
   ];
+  const tiles = status === "all" ? all : status === "justified" ? [all[1]] : [all[2]];
 
   return (
-    <div className="mb-4 grid grid-cols-3 gap-2 sm:gap-4">
+    <div className={`mb-4 grid gap-2 sm:gap-4 ${tiles.length === 3 ? "grid-cols-3" : "grid-cols-1 sm:max-w-xs"}`}>
       {tiles.map((tile) => (
         <div key={tile.label} className="rounded-xl border border-foreground/10 bg-surface p-3 sm:p-5">
           <p className="text-xs font-medium text-foreground/55 sm:text-sm">{tile.label}</p>
@@ -336,8 +369,12 @@ export function WebAppAttendance() {
       >
         {(data) => (
           <>
-            {(kind === "all" || kind === "absences") && data.absences.length > 0 && (
-              <AbsenceTotals absences={data.absences} units={units} />
+            {shows("absences") && data.absences.some((absence) => matches(absence.justified)) && (
+              <AbsenceTotals
+                absences={data.absences.filter((absence) => matches(absence.justified))}
+                units={units}
+                status={status}
+              />
             )}
             <div
               className={`grid grid-cols-1 gap-4 ${kind === "all" ? "lg:grid-cols-2" : ""}`}
@@ -459,9 +496,10 @@ export function WebAppAttendance() {
                       tag={
                         observation.positive
                           ? t.attendance.encouragement
-                          : undefined
+                          : t.attendance.remark
                       }
-                      tone="good"
+                      tone={observation.positive ? "good" : "bad"}
+                      icon={<Face happy={observation.positive} />}
                     />
                   ))}
                 </Section>

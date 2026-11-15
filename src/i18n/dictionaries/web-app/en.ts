@@ -259,6 +259,7 @@ const webAppEn: WebAppDictionary = {
     work: "Work to do",
     exclusion: "Exclusion",
     encouragement: "Encouragement",
+    remark: "Remark",
     nothing: "Nothing to report for this period.",
   },
   news: {
