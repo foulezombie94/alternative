@@ -422,9 +422,9 @@ export class PronoteService implements SchoolService {
         return { src: `data:${type};base64,${embedded}` };
       }
       const url = handle.userResource.profilePicture?.url;
-      if (!url) return { src: null, reason: "noPhoto" };
+      if (!url) return { src: null, reason: `noPhoto ${(handle.userResource as { _photoInfo?: string })._photoInfo}` };
       const response = await fetch(url, { headers: { "User-Agent": userAgent }, signal: AbortSignal.timeout(15_000) });
-      if (!response.ok) return { src: null, reason: `status ${response.status}` };
+      if (!response.ok) return { src: null, reason: `status ${response.status} ${(handle.userResource as { _photoInfo?: string })._photoInfo}` };
       const bytes = new Uint8Array(await response.arrayBuffer());
       if (bytes.byteLength === 0 || bytes.byteLength > 1024 * 1024) return { src: null, reason: `size ${bytes.byteLength}` };
       const type = imageType(bytes);
