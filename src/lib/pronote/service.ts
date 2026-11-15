@@ -17,6 +17,8 @@ import type {
   UpcomingTestsDTO,
   ProfileDTO,
   RecipientDTO,
+  SurveyAnswer,
+  SurveyDTO,
 } from "./types";
 
 export interface SchoolService {
@@ -41,6 +43,8 @@ export interface SchoolService {
   attendance(periodId: string): Promise<AttendanceDTO>;
   news(): Promise<NewsDTO[]>;
   acknowledgeNews(id: string, title?: string, date?: string): Promise<{ acknowledged: boolean }>;
+  survey(id: string, title?: string, date?: string): Promise<SurveyDTO>;
+  answerSurvey(id: string, title: string, date: string, answers: SurveyAnswer[]): Promise<{ saved: boolean }>;
   chats(): Promise<ChatDTO[]>;
   chatMessages(id: string): Promise<ChatThreadDTO>;
   sendMessage(id: string, content: string): Promise<void>;

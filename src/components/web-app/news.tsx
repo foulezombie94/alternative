@@ -6,6 +6,7 @@ import type { AttachmentDTO, NewsDetailDTO, NewsDTO } from "@/lib/pronote/types"
 import { ApiFailure, call, sessionLostCodes, useApi } from "./api";
 import { useWebApp } from "./context";
 import { capitalize, formatDay, formatShortDate } from "./format";
+import { Survey } from "./survey";
 import { Async, Attachments, Empty, Html, PageHeader } from "./ui";
 
 type FilterId = "all" | "unread" | "confirm" | "survey";
@@ -183,7 +184,7 @@ function Body({
   onLoaded: (detail: NewsDetailDTO | null) => void;
 }) {
   const { t } = useWebApp();
-  const needsDetail = !known && !item.content.trim();
+  const needsDetail = !item.survey && !known && !item.content.trim();
   const detail = useApi<NewsDetailDTO | null>(needsDetail ? "newsDetail" : null, {
     id: item.id,
     title: item.title,
@@ -195,6 +196,8 @@ function Body({
   useEffect(() => {
     if (loaded !== undefined) onLoaded(loaded);
   }, [loaded, onLoaded]);
+
+  if (item.survey) return <Survey item={item} onAnswered={onAcknowledged} />;
 
   if (!needsDetail) {
     return (

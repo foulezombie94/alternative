@@ -14,6 +14,9 @@ import {
   type PeriodDTO,
   type RecipientDTO,
   type ReportFileDTO,
+  type SurveyAnswer,
+  type SurveyDTO,
+  type SurveyQuestionDTO,
 } from "./types";
 
 const lessons = [
@@ -138,6 +141,7 @@ function currentPeriodId() {
 export class DemoService implements SchoolService {
   private doneHomework = new Map<string, boolean>();
   private acknowledged = new Set<string>();
+  private surveyAnswers = new Map<string, { selected: number[]; text: string }>();
   private sent = new Map<string, MessageDTO[]>();
   private created: ChatDTO[] = [];
 
@@ -507,6 +511,30 @@ export class DemoService implements SchoolService {
         attachments: index < 2 ? [{ name: index === 0 ? "planning-salles.pdf" : "selection-cdi.pdf", url: "#" }] : [],
       };
     });
+  }
+
+  async survey(): Promise<SurveyDTO> {
+    const choice = (labels: string[]) => labels.map((label, index) => ({ position: index + 1, label, free: label === "Autre" }));
+    const base: Omit<SurveyQuestionDTO, "answered" | "selected" | "text">[] = [
+      { id: "demo-q-0", kind: "info", label: "Texte 1", title: "", content: "<p>Aide-nous à préparer la collecte en répondant à ces quelques questions.</p>", choices: [], maxChoices: null, maxLength: null, attachments: [] },
+      { id: "demo-q-1", kind: "single", label: "Question 1", title: "", content: "<p>Participeras-tu à la collecte ?</p>", choices: choice(["Oui", "Non", "Je ne sais pas encore"]), maxChoices: null, maxLength: null, attachments: [] },
+      { id: "demo-q-2", kind: "multiple", label: "Question 2", title: "", content: "<p>Que pourrais-tu apporter ? (2 choix maximum)</p>", choices: choice(["Cahiers", "Stylos", "Trousses", "Autre"]), maxChoices: 2, maxLength: 200, attachments: [] },
+      { id: "demo-q-3", kind: "text", label: "Question 3", title: "", content: "<p>Une idée pour améliorer la collecte ?</p>", choices: [], maxChoices: null, maxLength: 200, attachments: [] },
+    ];
+    return {
+      anonymous: true,
+      open: true,
+      endDate: at(addDays(new Date(), 4), 23, 0).toISOString(),
+      questions: base.map((question) => {
+        const answer = this.surveyAnswers.get(question.id);
+        return { ...question, answered: Boolean(answer), selected: answer?.selected ?? [], text: answer?.text ?? "" };
+      }),
+    };
+  }
+
+  async answerSurvey(_id: string, _title: string, _date: string, answers: SurveyAnswer[]) {
+    for (const answer of answers) this.surveyAnswers.set(answer.id, { selected: answer.selected, text: answer.text });
+    return { saved: answers.length > 0 };
   }
 
   async acknowledgeNews(id: string) {

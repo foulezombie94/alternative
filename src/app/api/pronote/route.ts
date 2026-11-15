@@ -41,7 +41,7 @@ import {
   takeChallenge,
 } from "@/lib/pronote/store";
 import { shiftDates, toSchoolClock } from "@/lib/pronote/time";
-import { type ApiError, CourseState, type ErrorCode, type PeriodsDTO } from "@/lib/pronote/types";
+import { type ApiError, CourseState, type ErrorCode, type PeriodsDTO, type SurveyAnswer } from "@/lib/pronote/types";
 
 type Body = Record<string, unknown>;
 
@@ -58,6 +58,23 @@ const date = (body: Body, key: string) => {
   if (Number.isNaN(value.getTime())) throw new InputError(key);
   return toSchoolClock(value);
 };
+
+function surveyAnswers(value: unknown): SurveyAnswer[] {
+  if (!Array.isArray(value)) return [];
+  return value.slice(0, 200).flatMap((entry) => {
+    if (!entry || typeof entry !== "object") return [];
+    const { id, index, selected, text: answer } = entry as Record<string, unknown>;
+    if (typeof id !== "string" || typeof index !== "number") return [];
+    return [
+      {
+        id,
+        index,
+        selected: Array.isArray(selected) ? selected.filter((item): item is number => Number.isInteger(item)).slice(0, 50) : [],
+        text: typeof answer === "string" ? answer.slice(0, 5000) : "",
+      },
+    ];
+  });
+}
 
 async function notifications(service: SchoolService) {
   const safe = async <T,>(task: () => Promise<T>, fallback: T): Promise<T> => {
@@ -265,6 +282,15 @@ async function runAction(service: SchoolService, action: string, body: Body): Pr
         text(body, "id"),
         typeof body.title === "string" ? body.title : "",
         typeof body.date === "string" ? body.date : "",
+      );
+    case "survey":
+      return service.survey(text(body, "id"), typeof body.title === "string" ? body.title : "", typeof body.date === "string" ? body.date : "");
+    case "answerSurvey":
+      return service.answerSurvey(
+        text(body, "id"),
+        typeof body.title === "string" ? body.title : "",
+        typeof body.date === "string" ? body.date : "",
+        surveyAnswers(body.answers),
       );
     case "chats":
       return service.chats();

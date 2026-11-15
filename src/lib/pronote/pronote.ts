@@ -35,6 +35,7 @@ import {
   type NewsSurvey,
   newsInformationAcknowledge,
   newsAcknowledgeExact,
+  newsSurveyExact,
   notebook,
   NotebookObservationKind,
   parseTimetable,
@@ -63,6 +64,10 @@ import {
   type PeriodsDTO,
   type ReportFileDTO,
   type Score,
+  type SurveyAnswer,
+  type SurveyDTO,
+  type SurveyQuestionDTO,
+  type SurveyQuestionKind,
 } from "./types";
 
 const securitySourceName = "Alternative Web";
@@ -190,6 +195,30 @@ async function settleLogin(
 
 const iso = (date: Date) => date.toISOString();
 
+const surveyKinds: Record<number, SurveyQuestionKind> = { 1: "text", 2: "single", 3: "multiple" };
+
+function surveyQuestion(question: NewsQuestion): SurveyQuestionDTO {
+  const kind = surveyKinds[question.kind] ?? "info";
+  return {
+    id: question.id,
+    kind,
+    label: question.fullTitle ?? "",
+    title: question.title ?? "",
+    content: question.content?.trim() ?? "",
+    choices: (question.choices ?? []).map((choice) => ({
+      position: choice.position,
+      label: choice.value ?? "",
+      free: Boolean(choice.isTextInput),
+    })),
+    maxChoices: question.shouldRespectMaximumChoices && question.maximumChoices ? question.maximumChoices : null,
+    maxLength: question.maximumLength || null,
+    answered: Boolean(question.answered),
+    selected: kind === "single" || kind === "multiple" ? (question.selectedAnswers ?? []) : [],
+    text: question.textInputAnswer ?? "",
+    attachments: (question.attachments ?? []).map(attachment),
+  };
+}
+
 function attachment(file: Attachment): AttachmentDTO {
   return { name: file.name, url: file.url };
 }
@@ -282,6 +311,7 @@ export class PronoteService implements SchoolService {
   private relogin: Promise<void> | null = null;
   private discussionCache = new Map<string, Discussion>();
   private newsCache = new Map<string, NewsInformation>();
+  private surveyCache = new Map<string, NewsSurvey>();
   private rawNews = new Map<string, unknown>();
   private recipientCache = new Map<string, NewDiscussionRecipient>();
 
@@ -785,6 +815,7 @@ export class PronoteService implements SchoolService {
       .map((item) => {
         const information = item.is === "information" ? item : null;
         if (information) this.newsCache.set(item.id, information);
+        if (item.is === "survey") this.surveyCache.set(item.id, item);
         this.rawNews.set(item.id, (item as unknown as { _raw?: unknown })._raw);
         return {
           id: item.id,
@@ -849,7 +880,7 @@ export class PronoteService implements SchoolService {
       }
     }
     if (itemId !== id && cached) this.newsCache.set(id, cached);
-    return { itemId, item: cached, questions };
+    return { itemId, item: cached, questions, raw };
   }
 
   newsDetail(id: string, title: string, date: string) {
@@ -886,6 +917,67 @@ export class PronoteService implements SchoolService {
       await newsAcknowledgeExact(handle, item);
       const check = await this.newsQuestions(handle, itemId, title, date);
       return { acknowledged: Boolean(check.questions[0]?.answered) };
+    });
+  }
+
+  private surveyItem(itemId: string, raw: unknown) {
+    const survey = this.surveyCache.get(itemId);
+    if (!survey) throw new NotSupportedError("news");
+    const target = survey as unknown as { public?: { N?: string; G?: number; L?: string } };
+    if (!target.public?.G) {
+      const source = raw as { public?: { V?: { N?: string; G?: number; L?: string }; N?: string; G?: number; L?: string }; genrePublic?: number };
+      const audience = source.public?.V ?? source.public;
+      target.public = { N: audience?.N, G: audience?.G ?? source.genrePublic ?? 4, L: audience?.L };
+    }
+    return survey;
+  }
+
+  survey(id: string, title = "", date = "") {
+    return this.run(async (handle): Promise<SurveyDTO> => {
+      const { itemId, raw, questions } = await this.newsQuestions(handle, id, title, date);
+      const survey = this.surveyItem(itemId, raw);
+      const now = Date.now();
+      const started = !survey.startDate || survey.startDate.getTime() <= now;
+      const ended = Boolean(survey.endDate && survey.endDate.getTime() < now);
+      return {
+        anonymous: Boolean(survey.isAnonymous),
+        open: started && !ended,
+        endDate: survey.endDate ? iso(survey.endDate) : null,
+        questions: questions.map(surveyQuestion),
+      };
+    });
+  }
+
+  answerSurvey(id: string, title: string, date: string, answers: SurveyAnswer[]) {
+    return this.run(async (handle) => {
+      const { itemId, raw, questions } = await this.newsQuestions(handle, id, title, date);
+      const survey = this.surveyItem(itemId, raw);
+      const payload = answers.flatMap((answer) => {
+        const question = questions.find((entry) => entry.id === answer.id) ?? questions[answer.index];
+        const kind = question ? surveyKinds[question.kind] : undefined;
+        if (!question || !kind) return [];
+        const choices = question.choices ?? [];
+        const selected = answer.selected.filter((position) => choices.some((choice) => choice.position === position));
+        const free = choices.some((choice) => choice.isTextInput && selected.includes(choice.position));
+        if (kind === "text" ? !answer.text.trim() : selected.length === 0) return [];
+        return [
+          {
+            id: question.id,
+            fullTitle: question.fullTitle ?? "",
+            kind: question.kind,
+            answerID: question.answerID,
+            shouldAnswer: question.shouldAnswer,
+            selected: kind === "single" ? selected.slice(0, 1) : selected,
+            text: kind === "text" || free ? answer.text : undefined,
+            free,
+          },
+        ];
+      });
+      if (payload.length === 0) return { saved: false };
+      await newsSurveyExact(handle, survey as unknown as { id: string; title?: string; public?: unknown }, payload);
+      const check = await this.newsQuestions(handle, itemId, title, date);
+      const saved = payload.every((sent) => check.questions.find((entry) => entry.id === sent.id)?.answered ?? true);
+      return { saved };
     });
   }
 

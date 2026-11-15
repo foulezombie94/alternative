@@ -203,6 +203,32 @@ export type NewsDetailDTO = {
   acknowledged: boolean;
 };
 
+export type SurveyQuestionKind = "text" | "single" | "multiple" | "info";
+
+export type SurveyQuestionDTO = {
+  id: string;
+  kind: SurveyQuestionKind;
+  label: string;
+  title: string;
+  content: string;
+  choices: { position: number; label: string; free: boolean }[];
+  maxChoices: number | null;
+  maxLength: number | null;
+  answered: boolean;
+  selected: number[];
+  text: string;
+  attachments: AttachmentDTO[];
+};
+
+export type SurveyDTO = {
+  anonymous: boolean;
+  open: boolean;
+  endDate: string | null;
+  questions: SurveyQuestionDTO[];
+};
+
+export type SurveyAnswer = { id: string; index: number; selected: number[]; text: string };
+
 export type ChatDTO = {
   id: string;
   subject: string;
