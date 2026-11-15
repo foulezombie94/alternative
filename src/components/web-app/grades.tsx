@@ -3,7 +3,7 @@
 import { ChevronDown } from "@getpapillon/papicons";
 import { useState } from "react";
 import type { GradeDTO, GradesDTO, PeriodsDTO, SubjectDTO } from "@/lib/pronote/types";
-import { overallAverage } from "@/lib/pronote/average";
+import { subjectsAverage } from "@/lib/pronote/average";
 import { after, useApi } from "./api";
 import { GradesChart } from "./grades-chart";
 import { useWebApp } from "./context";
@@ -116,7 +116,9 @@ export function WebAppGrades() {
       <Async state={after(periods, grades, { overall: { value: null }, classOverall: { value: null }, subjects: [] })} empty={t.grades.noGrades} isEmpty={(data) => !data.subjects.length}>
         {(data) => {
           const official = data.overall.value !== null;
-          const overall = official ? data.overall : { value: overallAverage(data.subjects) };
+          const overall = official
+            ? data.overall
+            : { value: subjectsAverage(data.subjects.flatMap((subject) => subject.grades.map((grade) => ({ ...grade, subjectId: subject.id })))) };
           return (
             <>
               <div className="mb-6 flex flex-wrap items-end gap-8 rounded-xl bg-primary p-6 text-white">

@@ -185,12 +185,9 @@ const webAppEn: WebAppDictionary = {
     noHomework: "No homework this week.",
   },
   grades: {
+    estimated: "estimated",
     bySchool: "from your school",
     estimatedOn: "estimated on",
-    current: "current average",
-    evolution: "Progress",
-    evolutionSubject: "Line to show",
-    sinceStart: "since the start of the period",
     notEnough: "Not enough dated grades yet to draw a trend.",
     average: "Average",
     date: "Date",

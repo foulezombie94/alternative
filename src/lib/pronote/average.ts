@@ -49,3 +49,23 @@ export function overallAverage(subjects: { average: { value: number | null } }[]
   if (!values.length) return null;
   return values.reduce((sum, value) => sum + value, 0) / values.length;
 }
+
+export function subjectsAverage(grades: (Countable & { subjectId: string })[]): number | null {
+  const groups = new Map<string, Countable[]>();
+  for (const grade of grades) groups.set(grade.subjectId, [...(groups.get(grade.subjectId) ?? []), grade]);
+  const averages = [...groups.values()].map((group) => subjectAverage(group)).filter((value) => value !== null);
+  if (!averages.length) return null;
+  return averages.reduce((sum, value) => sum + value, 0) / averages.length;
+}
+
+export function averageHistory<T extends Countable & { subjectId: string; date?: string }>(grades: T[]) {
+  const sorted = [...grades].sort(
+    (a, b) => (a.date ? new Date(a.date).getTime() : 0) - (b.date ? new Date(b.date).getTime() : 0),
+  );
+  const points: { value: number; grade: T }[] = [];
+  for (let index = 0; index < sorted.length; index++) {
+    const value = subjectsAverage(sorted.slice(0, index + 1));
+    if (value !== null) points.push({ value, grade: sorted[index] });
+  }
+  return points;
+}
