@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useMemo, useState } from "react";
+import { Fragment, useMemo, useState, useSyncExternalStore } from "react";
 import { type CourseDTO, CourseKind, type CourseResourceDTO, CourseState, type HolidayDTO } from "@/lib/pronote/types";
 import { useApi } from "./api";
 import { useWebApp } from "./context";
@@ -8,10 +8,25 @@ import { addDays, capitalize, dayKey, endOfDay, formatDay, formatDuration, forma
 import { Async, Attachments, Dialog, Empty, Html, isLive, LiveProgress, PageHeader, useNow, WeekNav } from "./ui";
 
 const columnClasses: Record<number, string> = {
-  5: "lg:grid-cols-5",
-  6: "lg:grid-cols-6",
-  7: "lg:grid-cols-7",
+  5: "grid-cols-5",
+  6: "grid-cols-6",
+  7: "grid-cols-7",
 };
+
+type View = "day" | "week";
+
+const viewKey = "alternative.timetable.view";
+
+function readSavedView(): View | null {
+  try {
+    const saved = window.localStorage.getItem(viewKey);
+    return saved === "day" || saved === "week" ? saved : null;
+  } catch {
+    return null;
+  }
+}
+
+const noSubscription = () => () => {};
 
 type Gap = { kind: "lunch" | "free"; from: Date; to: Date; minutes: number };
 
@@ -44,12 +59,16 @@ function gapsBefore(courses: CourseDTO[]) {
   return gaps;
 }
 
-function GapRow({ gap }: { gap: Gap }) {
+function GapRow({ gap, compact = false }: { gap: Gap; compact?: boolean }) {
   const { t, locale } = useWebApp();
   return (
-    <li className="flex flex-col rounded-lg border border-dashed border-foreground/15 px-3 py-2 text-sm text-foreground/50">
-      <span className="font-medium">{gap.kind === "lunch" ? t.timetable.lunch : t.timetable.freePeriod}</span>
-      <span className="text-xs tabular-nums">
+    <li
+      className={`flex flex-col rounded-lg border border-dashed border-foreground/15 text-foreground/50 ${
+        compact ? "px-1.5 py-1 text-xs max-sm:items-center sm:px-3 sm:py-2 sm:text-sm" : "px-4 py-2.5 text-sm"
+      }`}
+    >
+      <span className="font-medium max-sm:truncate">{gap.kind === "lunch" ? t.timetable.lunch : t.timetable.freePeriod}</span>
+      <span className={`text-xs tabular-nums ${compact ? "max-sm:hidden" : ""}`}>
         {formatTime(gap.from, locale)} – {formatTime(gap.to, locale)} ·{" "}
         {formatDuration(gap.minutes, { hours: t.common.hours, minutes: t.common.minutes })}
       </span>
@@ -66,21 +85,29 @@ function holidayOn(holidays: HolidayDTO[] | undefined, day: Date) {
   });
 }
 
-function HolidayPanel({ holiday }: { holiday: HolidayDTO }) {
+function HolidayPanel({ holiday, compact = false }: { holiday: HolidayDTO; compact?: boolean }) {
   const { t } = useWebApp();
   const label = /vacances|vacation|holidays/i.test(holiday.name) ? t.timetable.vacation : t.timetable.holiday;
 
   return (
     <div
-      className="relative flex min-h-96 flex-1 items-center justify-center overflow-hidden rounded-lg bg-background"
+      className={`relative flex flex-1 items-center justify-center overflow-hidden rounded-lg bg-background ${
+        compact ? "min-h-64 sm:min-h-96" : "min-h-72"
+      }`}
       style={{
         backgroundImage:
           "repeating-linear-gradient(-45deg, color-mix(in oklab, var(--color-foreground) 5%, transparent) 0 12px, transparent 12px 24px)",
       }}
     >
-      <div className="flex -rotate-45 flex-col items-center text-center">
-        <span className="text-5xl font-semibold tracking-tight text-foreground/25 uppercase">{label}</span>
-        <span className="mt-1 max-w-48 text-sm font-medium text-foreground/50">{holiday.name}</span>
+      <div className={`flex flex-col items-center text-center ${compact ? "max-sm:-rotate-90 sm:-rotate-45" : "-rotate-12"}`}>
+        <span
+          className={`font-semibold tracking-tight text-foreground/25 uppercase ${compact ? "text-lg sm:text-5xl" : "text-5xl"}`}
+        >
+          {label}
+        </span>
+        <span className={`mt-1 max-w-48 text-sm font-medium text-foreground/50 ${compact ? "max-sm:hidden" : ""}`}>
+          {holiday.name}
+        </span>
       </div>
     </div>
   );
@@ -163,9 +190,147 @@ function CourseDetail({ course, onClose }: { course: CourseDTO; onClose: () => v
   );
 }
 
+function CourseCard({
+  course,
+  compact,
+  now,
+  onSelect,
+}: {
+  course: CourseDTO;
+  compact: boolean;
+  now: Date;
+  onSelect: () => void;
+}) {
+  const { locale } = useWebApp();
+  const canceled = course.state === CourseState.Canceled;
+  const live = isLive(course, now);
+  const place = [course.room, course.teacher].filter(Boolean).join(" · ");
+
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      aria-current={live ? "time" : undefined}
+      className={`flex w-full rounded-lg text-left transition-colors hover:bg-foreground/5 ${
+        compact ? "gap-1.5 p-1.5 sm:gap-3 sm:p-3" : "gap-4 p-4"
+      } ${canceled ? "opacity-60" : ""} ${live ? "bg-accent/5 ring-2 ring-accent" : "bg-background"}`}
+    >
+      <span
+        aria-hidden
+        className={`shrink-0 rounded-full bg-primary ${compact ? "w-0.5 sm:w-1" : "w-1"}`}
+        style={course.color ? { backgroundColor: course.color } : undefined}
+      />
+      <span className="min-w-0 flex-1">
+        <span
+          className={`block font-medium tabular-nums text-foreground/50 ${compact ? "text-xs max-sm:leading-tight" : "text-sm"}`}
+        >
+          {formatTime(course.from, locale)}
+          <span className={compact ? "max-sm:hidden" : ""}> – {formatTime(course.to, locale)}</span>
+        </span>
+        <span
+          className={`block font-medium ${canceled ? "line-through" : ""} ${
+            compact ? "text-xs leading-tight break-words hyphens-auto max-sm:line-clamp-3 sm:text-base sm:hyphens-manual" : "text-lg wrap-anywhere"
+          }`}
+        >
+          {course.subject}
+        </span>
+        {place && (
+          <span className={`block truncate text-foreground/50 ${compact ? "text-xs max-sm:hidden sm:text-sm" : "text-sm"}`}>
+            {place}
+          </span>
+        )}
+        {compact && course.room && <span className="block truncate text-xs text-foreground/50 sm:hidden">{course.room}</span>}
+        <span className={`mt-1 block ${compact ? "max-sm:hidden" : ""}`}>
+          <Badge course={course} />
+        </span>
+        {compact && (canceled || course.state === CourseState.Test || course.state === CourseState.Edited) && (
+          <span
+            aria-hidden
+            className={`mt-1 block h-1 rounded-full sm:hidden ${
+              canceled
+                ? "bg-feature-schedule"
+                : course.state === CourseState.Test
+                  ? "bg-feature-news"
+                  : "bg-feature-homework"
+            }`}
+          />
+        )}
+        {live && <LiveProgress from={course.from} to={course.to} now={now} />}
+      </span>
+    </button>
+  );
+}
+
+function DayCourses({
+  list,
+  holiday,
+  compact,
+  now,
+  onSelect,
+}: {
+  list: CourseDTO[];
+  holiday: HolidayDTO | undefined;
+  compact: boolean;
+  now: Date;
+  onSelect: (course: CourseDTO) => void;
+}) {
+  const { t } = useWebApp();
+  const dayOff = holiday && !list.some((course) => course.state !== CourseState.Canceled);
+  const gaps = gapsBefore(list);
+
+  if (dayOff) return <HolidayPanel holiday={holiday} compact={compact} />;
+  if (!list.length) {
+    return <p className={`px-1 pb-2 text-foreground/40 ${compact ? "text-xs sm:text-sm" : "py-8 text-center"}`}>{t.common.empty}</p>;
+  }
+  return (
+    <ul className={`flex flex-col ${compact ? "gap-1 sm:gap-2" : "gap-2"}`}>
+      {list.map((course) => {
+        const gap = gaps.get(course.id);
+        return (
+          <Fragment key={course.id}>
+            {gap && <GapRow gap={gap} compact={compact} />}
+            <li>
+              <CourseCard course={course} compact={compact} now={now} onSelect={() => onSelect(course)} />
+            </li>
+          </Fragment>
+        );
+      })}
+    </ul>
+  );
+}
+
+function ViewToggle({ view, onChange }: { view: View; onChange: (view: View) => void }) {
+  const { t } = useWebApp();
+  const options: { value: View; label: string }[] = [
+    { value: "day", label: t.timetable.dayView },
+    { value: "week", label: t.timetable.weekView },
+  ];
+  return (
+    <div role="group" className="grid grid-cols-2 rounded-lg border border-foreground/10 bg-surface p-1 max-sm:w-full">
+      {options.map((option) => (
+        <button
+          key={option.value}
+          type="button"
+          aria-pressed={view === option.value}
+          onClick={() => onChange(option.value)}
+          className={`rounded-md px-4 py-1.5 text-sm font-medium whitespace-nowrap transition-colors ${
+            view === option.value ? "bg-primary text-white" : "text-foreground/60 hover:text-foreground"
+          }`}
+        >
+          {option.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export function WebAppTimetable() {
   const { t, locale } = useWebApp();
   const [week, setWeek] = useState(() => startOfWeek(new Date()));
+  const [dayIndex, setDayIndex] = useState(() => Math.min(Math.max((new Date().getDay() + 6) % 7, 0), 4));
+  const savedView = useSyncExternalStore(noSubscription, readSavedView, () => null);
+  const [chosenView, setChosenView] = useState<View | null>(null);
+  const view = chosenView ?? savedView ?? "day";
   const [selected, setSelected] = useState<CourseDTO | null>(null);
   const now = useNow();
   const range = useMemo(
@@ -174,11 +339,26 @@ export function WebAppTimetable() {
   );
   const state = useApi<CourseDTO[]>("timetable", range);
   const holidays = useApi<HolidayDTO[]>("holidays");
+  const weekday = useMemo(() => new Intl.DateTimeFormat(locale, { weekday: "short" }), [locale]);
+
+  function changeView(next: View) {
+    setChosenView(next);
+    try {
+      window.localStorage.setItem(viewKey, next);
+    } catch {}
+  }
+
+  function changeWeek(next: Date) {
+    setWeek(next);
+    const today = new Date();
+    if (startOfWeek(today).getTime() === next.getTime()) setDayIndex(Math.min((today.getDay() + 6) % 7, 6));
+  }
 
   return (
     <>
       <PageHeader title={t.nav.timetable}>
-        <WeekNav week={week} onChange={setWeek} />
+        <ViewToggle view={view} onChange={changeView} />
+        <WeekNav week={week} onChange={changeWeek} />
       </PageHeader>
       <Async state={state}>
         {(courses) => {
@@ -186,69 +366,92 @@ export function WebAppTimetable() {
             (day, index) => index < 5 || courses.some((course) => sameDay(new Date(course.from), day)),
           );
           const weekHolidays = days.map((day) => holidayOn(holidays.data, day));
+          const coursesOn = (day: Date) => courses.filter((course) => sameDay(new Date(course.from), day));
+
+          if (view === "day") {
+            const index = Math.min(dayIndex, days.length - 1);
+            const day = days[index];
+            return (
+              <div className="mx-auto flex w-full max-w-3xl flex-col gap-4">
+                <div role="tablist" className={`grid gap-1.5 sm:gap-2 ${columnClasses[days.length] ?? "grid-cols-5"}`}>
+                  {days.map((entry, position) => {
+                    const active = position === index;
+                    const today = sameDay(entry, new Date());
+                    const count = coursesOn(entry).filter((course) => course.state !== CourseState.Canceled).length;
+                    return (
+                      <button
+                        key={dayKey(entry)}
+                        type="button"
+                        role="tab"
+                        aria-selected={active}
+                        onClick={() => setDayIndex(position)}
+                        className={`flex flex-col items-center rounded-xl border py-2 transition-colors ${
+                          active
+                            ? "border-foreground bg-foreground text-background"
+                            : today
+                              ? "border-accent/50 bg-accent/5 text-accent hover:border-accent"
+                              : "border-foreground/10 bg-surface hover:border-foreground/30"
+                        }`}
+                      >
+                        <span className="text-xs font-medium uppercase opacity-70">{weekday.format(entry).replace(".", "")}</span>
+                        <span className="text-xl font-semibold tabular-nums">{entry.getDate()}</span>
+                        <span
+                          aria-hidden
+                          className={`mt-1 size-1.5 rounded-full ${
+                            weekHolidays[position] ? "bg-current opacity-30" : count ? "bg-current opacity-60" : "opacity-0"
+                          }`}
+                        />
+                      </button>
+                    );
+                  })}
+                </div>
+                <section
+                  className={`rounded-xl border p-3 sm:p-5 ${
+                    sameDay(day, new Date()) ? "border-accent/50 bg-accent/5" : "border-foreground/10 bg-surface"
+                  }`}
+                >
+                  <h2 className={`mb-4 px-1 text-lg font-semibold ${sameDay(day, new Date()) ? "text-accent" : ""}`}>
+                    {capitalize(formatDay(day, locale, true))}
+                  </h2>
+                  <DayCourses
+                    list={coursesOn(day)}
+                    holiday={weekHolidays[index]}
+                    compact={false}
+                    now={now}
+                    onSelect={setSelected}
+                  />
+                </section>
+              </div>
+            );
+          }
+
           if (!courses.length && !weekHolidays.some(Boolean)) return <Empty>{t.timetable.noCourses}</Empty>;
 
           return (
-            <div className={`grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 ${columnClasses[days.length] ?? "lg:grid-cols-5"}`}>
-              {days.map((day, dayIndex) => {
-                const list = courses.filter((course) => sameDay(new Date(course.from), day));
+            <div className={`grid gap-1 sm:gap-3 ${columnClasses[days.length] ?? "grid-cols-5"}`}>
+              {days.map((day, position) => {
                 const today = sameDay(day, new Date());
-                const holiday = weekHolidays[dayIndex];
-                const dayOff = holiday && !list.some((course) => course.state !== CourseState.Canceled);
-                const gaps = gapsBefore(list);
                 return (
                   <section
                     key={dayKey(day)}
-                    className={`flex min-w-0 flex-col rounded-xl p-2 text-sm sm:p-3 sm:text-base border ${today ? "border-accent/50 bg-accent/5" : "border-foreground/10 bg-surface"}`}
+                    className={`flex min-w-0 flex-col rounded-lg border p-1 sm:rounded-xl sm:p-3 ${
+                      today ? "border-accent/50 bg-accent/5" : "border-foreground/10 bg-surface"
+                    }`}
                   >
-                    <h2 className={`mb-3 px-1 font-semibold ${today ? "text-accent" : ""}`}>
-                      {capitalize(formatDay(day, locale))}
+                    <h2 className={`mb-2 text-center font-semibold sm:mb-3 sm:px-1 sm:text-left ${today ? "text-accent" : ""}`}>
+                      <span className="flex flex-col text-xs leading-tight sm:hidden">
+                        <span className="uppercase opacity-70">{weekday.format(day).replace(".", "")}</span>
+                        <span className="text-base">{day.getDate()}</span>
+                      </span>
+                      <span className="max-sm:hidden">{capitalize(formatDay(day, locale))}</span>
                     </h2>
-                    {dayOff && <HolidayPanel holiday={holiday} />}
-                    {!list.length && !dayOff && <p className="px-1 pb-2 text-sm text-foreground/40">{t.common.empty}</p>}
-                    <ul className={`flex flex-col gap-2 ${dayOff ? "hidden" : ""}`}>
-                      {list.map((course) => {
-                        const canceled = course.state === CourseState.Canceled;
-                        const live = isLive(course, now);
-                        const gap = gaps.get(course.id);
-                        return (
-                          <Fragment key={course.id}>
-                          {gap && <GapRow gap={gap} />}
-                          <li>
-                            <button
-                              type="button"
-                              onClick={() => setSelected(course)}
-                              aria-current={live ? "time" : undefined}
-                              className={`flex w-full gap-3 rounded-lg p-3 text-left transition-colors hover:bg-foreground/5 ${
-                                canceled ? "opacity-60" : ""
-                              } ${live ? "bg-accent/5 ring-2 ring-accent" : "bg-background"}`}
-                            >
-                              <span
-                                aria-hidden
-                                className="w-1 shrink-0 rounded-full bg-primary"
-                                style={course.color ? { backgroundColor: course.color } : undefined}
-                              />
-                              <span className="min-w-0 flex-1">
-                                <span className="block text-xs font-medium tabular-nums text-foreground/50">
-                                  {formatTime(course.from, locale)} – {formatTime(course.to, locale)}
-                                </span>
-                                <span className={`block font-medium wrap-anywhere ${canceled ? "line-through" : ""}`}>
-                                  {course.subject}
-                                </span>
-                                <span className="block truncate text-sm text-foreground/50">
-                                  {[course.room, course.teacher].filter(Boolean).join(" · ")}
-                                </span>
-                                <span className="mt-1 block">
-                                  <Badge course={course} />
-                                </span>
-                                {live && <LiveProgress from={course.from} to={course.to} now={now} />}
-                              </span>
-                            </button>
-                          </li>
-                          </Fragment>
-                        );
-                      })}
-                    </ul>
+                    <DayCourses
+                      list={coursesOn(day)}
+                      holiday={weekHolidays[position]}
+                      compact
+                      now={now}
+                      onSelect={setSelected}
+                    />
                   </section>
                 );
               })}

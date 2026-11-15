@@ -158,6 +158,8 @@ const webAppFr = {
     holiday: "Férié",
     vacation: "Vacances",
     lunch: "Pause midi",
+    dayView: "Jour",
+    weekView: "Semaine",
     freePeriod: "Permanence",
     room: "Salle",
     teacher: "Professeur",

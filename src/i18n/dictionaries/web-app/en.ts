@@ -160,6 +160,8 @@ const webAppEn: WebAppDictionary = {
     holiday: "Holiday",
     vacation: "Vacation",
     lunch: "Lunch break",
+    dayView: "Day",
+    weekView: "Week",
     freePeriod: "Free period",
     room: "Room",
     teacher: "Teacher",
