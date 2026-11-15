@@ -5,6 +5,7 @@ import { useState } from "react";
 import type { GradeDTO, GradesDTO, PeriodsDTO, SubjectDTO } from "@/lib/pronote/types";
 import { overallAverage } from "@/lib/pronote/average";
 import { after, useApi } from "./api";
+import { GradesChart } from "./grades-chart";
 import { useWebApp } from "./context";
 import { formatScore, formatShortDate } from "./format";
 import { Async, Attachments, Dialog, PageHeader, PeriodSelect, SubjectDot } from "./ui";
@@ -138,6 +139,7 @@ export function WebAppGrades() {
                   </div>
                 )}
               </div>
+              <GradesChart subjects={data.subjects} />
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 {data.subjects.map((subject) => (
                   <SubjectCard key={subject.id} subject={subject} onPick={(grade) => setSelected({ grade, subject })} />
