@@ -21,11 +21,12 @@ function subscribeDesktop(onChange: () => void) {
   return () => media.removeEventListener("change", onChange);
 }
 
-type Gap = { kind: "lunch" | "free"; from: Date; to: Date; minutes: number };
+type Gap = { kind: "lunch" | "free" | "break"; from: Date; to: Date; minutes: number };
 
 const lunchWindow = { start: 11.5, end: 14 };
 const shortestLunch = 30;
 const shortestFreePeriod = 45;
+const shortestBreak = 10;
 
 function gapsBefore(courses: CourseDTO[]) {
   const gaps = new Map<string, Gap>();
@@ -44,6 +45,8 @@ function gapsBefore(courses: CourseDTO[]) {
         gaps.set(course.id, { kind: "lunch", from: end, to: from, minutes });
       } else if (minutes >= shortestFreePeriod) {
         gaps.set(course.id, { kind: "free", from: end, to: from, minutes });
+      } else if (minutes >= shortestBreak) {
+        gaps.set(course.id, { kind: "break", from: end, to: from, minutes });
       }
     }
     const to = new Date(course.to);
@@ -54,6 +57,18 @@ function gapsBefore(courses: CourseDTO[]) {
 
 function GapRow({ gap, compact = false }: { gap: Gap; compact?: boolean }) {
   const { t, locale } = useWebApp();
+  if (gap.kind === "break") {
+    return (
+      <div className="flex w-full items-center gap-2 px-1 text-xs text-foreground/45">
+        <span className="h-px flex-1 bg-foreground/10" />
+        <span className="font-medium">{t.timetable.break}</span>
+        <span className="tabular-nums max-sm:hidden">
+          {formatTime(gap.from, locale)} – {formatTime(gap.to, locale)}
+        </span>
+        <span className="h-px flex-1 bg-foreground/10" />
+      </div>
+    );
+  }
   return (
     <div
       className={`flex w-full flex-col justify-center rounded-lg border border-dashed border-foreground/15 text-foreground/50 ${
@@ -222,7 +237,7 @@ function CourseCard({
         </span>
         <span
           className={`block font-medium ${canceled ? "line-through" : ""} ${
-            compact ? "text-xs leading-tight break-words hyphens-auto max-sm:line-clamp-3 sm:text-base sm:hyphens-manual" : "text-lg wrap-anywhere"
+            compact ? "text-xs leading-tight break-words hyphens-auto max-sm:line-clamp-3 sm:text-sm 2xl:text-base" : "text-lg wrap-anywhere"
           }`}
         >
           {course.subject}
@@ -291,14 +306,15 @@ function DayCourses({
   }
   if (range) {
     const rows: { course: CourseDTO; from: number; to: number; before: number }[] = [];
-    let cursor = range.start;
+    const firstStart = list.length ? clockMinutes(list[0].from) : range.start;
+    let cursor = firstStart;
     for (const course of list) {
       const from = clockMinutes(course.from);
       const to = Math.max(from + 15, clockMinutes(course.to));
       rows.push({ course, from, to, before: Math.max(0, from - cursor) });
       cursor = Math.max(cursor, to);
     }
-    const after = Math.max(0, range.end - cursor);
+    const after = Math.max(0, range.end - cursor) + Math.max(0, firstStart - range.start);
 
     return (
       <ul className="flex flex-1 flex-col">
