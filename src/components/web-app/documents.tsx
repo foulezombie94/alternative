@@ -76,13 +76,23 @@ function FileButton({ file, onError }: { file: ReportFileDTO; onError: (message:
 }
 
 export function WebAppDocuments() {
-  const { t } = useWebApp();
+  const { t, profile } = useWebApp();
   const state = useApi<DocumentsDTO>("documents");
   const [error, setError] = useState("");
+  const [current] = useState(() => {
+    const today = new Date();
+    const year = today.getMonth() >= 7 ? today.getFullYear() : today.getFullYear() - 1;
+    return `${year}-${year + 1}`;
+  });
 
   return (
     <>
       <PageHeader title={t.nav.documents} />
+      <p className="mb-4 flex flex-wrap items-center gap-2 text-sm text-foreground/60">
+        <span className="rounded-full bg-accent/10 px-3 py-1 font-semibold text-accent">{t.documents.current}</span>
+        <span className="font-medium text-foreground">{current.replace("-", " – ")}</span>
+        {profile.className && <span>· {profile.className}</span>}
+      </p>
       {error && <p className="mb-4 rounded-lg bg-impact-down/10 px-4 py-3 text-sm text-impact-down">{error}</p>}
       <Async state={state} empty={t.documents.none} isEmpty={(data) => !data.reports.length}>
         {(data) => (
@@ -93,9 +103,18 @@ export function WebAppDocuments() {
                   <h2 className="text-xl font-semibold tracking-tight">
                     {t.documents.year} {year.label.replace("-", " – ")}
                   </h2>
-                  {year.className && (
-                    <span className="rounded-full bg-foreground/5 px-3 py-1 text-sm font-medium text-foreground/70">{year.className}</span>
-                  )}
+                  <span className="flex flex-wrap items-center gap-2">
+                    {year.label === current && (
+                      <span className="rounded-full bg-accent/10 px-3 py-1 text-sm font-semibold text-accent">
+                        {t.documents.current}
+                      </span>
+                    )}
+                    {year.className && (
+                      <span className="rounded-full bg-foreground/5 px-3 py-1 text-sm font-medium text-foreground/70">
+                        {year.className}
+                      </span>
+                    )}
+                  </span>
                 </header>
                 <div className="grid gap-4 md:grid-cols-3">
                   {year.periods.map((period) => (

@@ -45,6 +45,7 @@ const webAppEn: WebAppDictionary = {
     groupCommunication: "Communication",
   },
   documents: {
+    current: "Current year",
     year: "Year",
     pdf: "PDF · open",
     opening: "Opening…",

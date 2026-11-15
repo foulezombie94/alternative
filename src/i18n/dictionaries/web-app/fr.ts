@@ -43,6 +43,7 @@ const webAppFr = {
     groupCommunication: "Communication",
   },
   documents: {
+    current: "Année en cours",
     year: "Année",
     pdf: "PDF · ouvrir",
     opening: "Ouverture…",
