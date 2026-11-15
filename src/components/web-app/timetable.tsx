@@ -13,21 +13,6 @@ const columnClasses: Record<number, string> = {
   7: "grid-cols-7",
 };
 
-type View = "day" | "week";
-
-const viewKey = "alternative.timetable.view";
-
-function readSavedView(): View | null {
-  try {
-    const saved = window.localStorage.getItem(viewKey);
-    return saved === "day" || saved === "week" ? saved : null;
-  } catch {
-    return null;
-  }
-}
-
-const noSubscription = () => () => {};
-
 const desktopQuery = "(min-width: 64rem)";
 
 function subscribeDesktop(onChange: () => void) {
@@ -67,11 +52,12 @@ function gapsBefore(courses: CourseDTO[]) {
   return gaps;
 }
 
-function GapRow({ gap, compact = false }: { gap: Gap; compact?: boolean }) {
+function GapRow({ gap, compact = false, grow }: { gap: Gap; compact?: boolean; grow?: number }) {
   const { t, locale } = useWebApp();
   return (
     <li
-      className={`flex flex-col rounded-lg border border-dashed border-foreground/15 text-foreground/50 ${
+      style={grow ? { flex: `${grow} 1 auto` } : undefined}
+      className={`flex flex-col justify-center rounded-lg border border-dashed border-foreground/15 text-foreground/50 ${
         compact ? "px-1.5 py-1 text-xs max-sm:items-center sm:px-3 sm:py-2 sm:text-sm" : "px-4 py-2.5 text-sm"
       }`}
     >
@@ -219,13 +205,13 @@ function CourseCard({
       type="button"
       onClick={onSelect}
       aria-current={live ? "time" : undefined}
-      className={`flex w-full rounded-lg text-left transition-colors hover:bg-foreground/5 ${
+      className={`flex w-full items-start rounded-lg text-left transition-colors hover:bg-foreground/5 ${
         compact ? "gap-1.5 p-1.5 sm:gap-3 sm:p-3" : "gap-4 p-4"
       } ${canceled ? "opacity-60" : ""} ${live ? "bg-accent/5 ring-2 ring-accent" : "bg-background"}`}
     >
       <span
         aria-hidden
-        className={`shrink-0 rounded-full bg-primary ${compact ? "w-0.5 sm:w-1" : "w-1"}`}
+        className={`shrink-0 self-stretch rounded-full bg-primary ${compact ? "w-0.5 sm:w-1" : "w-1"}`}
         style={course.color ? { backgroundColor: course.color } : undefined}
       />
       <span className="min-w-0 flex-1">
@@ -269,16 +255,22 @@ function CourseCard({
   );
 }
 
+function minutesOf(from: string | Date, to: string | Date) {
+  return Math.max(15, Math.round((new Date(to).getTime() - new Date(from).getTime()) / 60000));
+}
+
 function DayCourses({
   list,
   holiday,
   compact,
+  fill = false,
   now,
   onSelect,
 }: {
   list: CourseDTO[];
   holiday: HolidayDTO | undefined;
   compact: boolean;
+  fill?: boolean;
   now: Date;
   onSelect: (course: CourseDTO) => void;
 }) {
@@ -291,13 +283,13 @@ function DayCourses({
     return <p className={`px-1 pb-2 text-foreground/40 ${compact ? "text-xs sm:text-sm" : "py-8 text-center"}`}>{t.common.empty}</p>;
   }
   return (
-    <ul className={`flex flex-col ${compact ? "gap-1 sm:gap-2" : "gap-2"}`}>
+    <ul className={`flex flex-col ${compact ? "gap-1 sm:gap-2" : "gap-2"} ${fill ? "flex-1" : ""}`}>
       {list.map((course) => {
         const gap = gaps.get(course.id);
         return (
           <Fragment key={course.id}>
-            {gap && <GapRow gap={gap} compact={compact} />}
-            <li>
+            {gap && <GapRow gap={gap} compact={compact} grow={fill ? gap.minutes : undefined} />}
+            <li className="flex" style={fill ? { flex: `${minutesOf(course.from, course.to)} 1 auto` } : undefined}>
               <CourseCard course={course} compact={compact} now={now} onSelect={() => onSelect(course)} />
             </li>
           </Fragment>
@@ -307,39 +299,12 @@ function DayCourses({
   );
 }
 
-function ViewToggle({ view, onChange }: { view: View; onChange: (view: View) => void }) {
-  const { t } = useWebApp();
-  const options: { value: View; label: string }[] = [
-    { value: "day", label: t.timetable.dayView },
-    { value: "week", label: t.timetable.weekView },
-  ];
-  return (
-    <div role="group" className="grid grid-cols-2 rounded-lg border border-foreground/10 bg-surface p-1 max-sm:w-full">
-      {options.map((option) => (
-        <button
-          key={option.value}
-          type="button"
-          aria-pressed={view === option.value}
-          onClick={() => onChange(option.value)}
-          className={`rounded-md px-4 py-1.5 text-sm font-medium whitespace-nowrap transition-colors ${
-            view === option.value ? "bg-primary text-white" : "text-foreground/60 hover:text-foreground"
-          }`}
-        >
-          {option.label}
-        </button>
-      ))}
-    </div>
-  );
-}
-
 export function WebAppTimetable() {
   const { t, locale } = useWebApp();
   const [week, setWeek] = useState(() => startOfWeek(new Date()));
   const [dayIndex, setDayIndex] = useState(() => Math.min(Math.max((new Date().getDay() + 6) % 7, 0), 4));
-  const savedView = useSyncExternalStore(noSubscription, readSavedView, () => null);
-  const [chosenView, setChosenView] = useState<View | null>(null);
   const desktop = useSyncExternalStore(subscribeDesktop, () => window.matchMedia(desktopQuery).matches, () => false);
-  const view = desktop ? "week" : (chosenView ?? savedView ?? "day");
+  const view = desktop ? "week" : "day";
   const [selected, setSelected] = useState<CourseDTO | null>(null);
   const now = useNow();
   const range = useMemo(
@@ -350,13 +315,6 @@ export function WebAppTimetable() {
   const holidays = useApi<HolidayDTO[]>("holidays");
   const weekday = useMemo(() => new Intl.DateTimeFormat(locale, { weekday: "short" }), [locale]);
 
-  function changeView(next: View) {
-    setChosenView(next);
-    try {
-      window.localStorage.setItem(viewKey, next);
-    } catch {}
-  }
-
   function changeWeek(next: Date) {
     setWeek(next);
     const today = new Date();
@@ -366,8 +324,7 @@ export function WebAppTimetable() {
   return (
     <>
       <PageHeader title={t.nav.timetable}>
-        {!desktop && <ViewToggle view={view} onChange={changeView} />}
-        <WeekNav week={week} onChange={changeWeek} />
+        <WeekNav week={week} onChange={changeWeek} onPickDay={(day) => setDayIndex((day.getDay() + 6) % 7)} />
       </PageHeader>
       <Async state={state}>
         {(courses) => {
@@ -437,7 +394,7 @@ export function WebAppTimetable() {
           if (!courses.length && !weekHolidays.some(Boolean)) return <Empty>{t.timetable.noCourses}</Empty>;
 
           return (
-            <div className={`grid gap-1 sm:gap-3 ${columnClasses[days.length] ?? "grid-cols-5"}`}>
+            <div className={`grid min-h-timetable gap-3 ${columnClasses[days.length] ?? "grid-cols-5"}`}>
               {days.map((day, position) => {
                 const today = sameDay(day, new Date());
                 return (
@@ -458,6 +415,7 @@ export function WebAppTimetable() {
                       list={coursesOn(day)}
                       holiday={weekHolidays[position]}
                       compact
+                      fill
                       now={now}
                       onSelect={setSelected}
                     />

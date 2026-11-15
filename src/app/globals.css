@@ -112,6 +112,10 @@
   color: var(--color-foreground);
 }
 
+@utility min-h-timetable {
+  min-height: calc(100dvh - 11rem);
+}
+
 @utility h-reader {
   max-height: calc(100dvh - 3rem);
 }

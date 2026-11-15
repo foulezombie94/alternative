@@ -202,7 +202,15 @@ export function Html({ html, className = "" }: { html: string; className?: strin
 
 const panelWidth = 288;
 
-function WeekPicker({ week, onChange }: { week: Date; onChange: (week: Date) => void }) {
+function WeekPicker({
+  week,
+  onChange,
+  onPickDay,
+}: {
+  week: Date;
+  onChange: (week: Date) => void;
+  onPickDay?: (day: Date) => void;
+}) {
   const { t, locale } = useWebApp();
   const [open, setOpen] = useState(false);
   const [month, setMonth] = useState(() => new Date(week.getFullYear(), week.getMonth(), 1));
@@ -306,6 +314,7 @@ function WeekPicker({ week, onChange }: { week: Date; onChange: (week: Date) => 
                         aria-current={isToday ? "date" : undefined}
                         onClick={() => {
                           onChange(startOfWeek(day));
+                          onPickDay?.(day);
                           setOpen(false);
                         }}
                         className={`flex h-9 items-center justify-center rounded-md text-sm tabular-nums transition-colors ${
@@ -327,6 +336,7 @@ function WeekPicker({ week, onChange }: { week: Date; onChange: (week: Date) => 
             type="button"
             onClick={() => {
               onChange(startOfWeek(new Date()));
+              onPickDay?.(new Date());
               setOpen(false);
             }}
             className="mt-2 w-full rounded-md border border-foreground/10 px-3 py-1.5 text-sm font-medium transition-colors hover:border-foreground/30"
@@ -343,10 +353,12 @@ export function WeekNav({
   week,
   onChange,
   calendar = true,
+  onPickDay,
 }: {
   week: Date;
   onChange: (week: Date) => void;
   calendar?: boolean;
+  onPickDay?: (day: Date) => void;
 }) {
   const { t, locale } = useWebApp();
   const current = startOfWeek(new Date()).getTime() === week.getTime();
@@ -354,7 +366,7 @@ export function WeekNav({
 
   return (
     <div className="flex flex-wrap items-center gap-2 max-sm:w-full">
-      {calendar && <WeekPicker week={week} onChange={onChange} />}
+      {calendar && <WeekPicker week={week} onChange={onChange} onPickDay={onPickDay} />}
       <button type="button" aria-label={t.common.previousWeek} className={button} onClick={() => onChange(addDays(week, -7))}>
         <ChevronLeft className="size-5" />
       </button>
