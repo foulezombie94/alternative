@@ -34,6 +34,7 @@ import {
   type NewsInformation,
   type NewsSurvey,
   newsInformationAcknowledge,
+  newsAcknowledgeExact,
   notebook,
   NotebookObservationKind,
   parseTimetable,
@@ -882,7 +883,7 @@ export class PronoteService implements SchoolService {
         await newsInformationAcknowledge(handle, item, true);
         return { acknowledged: false };
       }
-      await newsInformationAcknowledge(handle, item, true);
+      await newsAcknowledgeExact(handle, item);
       const check = await this.newsQuestions(handle, itemId, title, date);
       return { acknowledged: Boolean(check.questions[0]?.answered) };
     });
