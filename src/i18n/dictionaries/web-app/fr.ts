@@ -1,7 +1,8 @@
 const webAppFr = {
   brand: "alternative",
-  metadataTitle: "Alternative",
-  metadataDescription: "Ta vie scolaire Pronote dans le navigateur : notes, emploi du temps, devoirs et plus.",
+  metadataTitle: "alternative · Pronote dans ton navigateur",
+  metadataDescription: "Notes, moyennes, emploi du temps, devoirs et messages Pronote, dans une app web simple et rapide.",
+  ogHeadline: "Ta vie scolaire Pronote, dans ton navigateur.",
   openWebApp: "Ouvrir sur le web",
   notifications: {
     title: "Notifications",
@@ -75,7 +76,7 @@ const webAppFr = {
   },
   login: {
     title: "Connexion à Pronote",
-    subtitle: "Tes identifiants passent uniquement par le serveur qui tourne sur ton ordinateur.",
+    subtitle: "Tes identifiants sont transmis à Pronote par le serveur de l’app, sans être enregistrés.",
     tabs: { credentials: "Identifiants", qr: "QR code", demo: "Démo" },
     url: "Adresse Pronote de l’établissement",
     urlPlaceholder: "https://0000000a.index-education.net/pronote/",

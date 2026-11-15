@@ -2,8 +2,9 @@ import type { WebAppDictionary } from "./fr";
 
 const webAppEn: WebAppDictionary = {
   brand: "alternative",
-  metadataTitle: "Alternative",
-  metadataDescription: "Your Pronote school life in the browser: grades, schedule, homework and more.",
+  metadataTitle: "alternative · Pronote in your browser",
+  metadataDescription: "Pronote grades, averages, timetable, homework and messages in a simple, fast web app.",
+  ogHeadline: "Your Pronote school life, in your browser.",
   openWebApp: "Open on the web",
   notifications: {
     title: "Notifications",
@@ -77,7 +78,7 @@ const webAppEn: WebAppDictionary = {
   },
   login: {
     title: "Sign in to Pronote",
-    subtitle: "Your credentials only go through the server running on your own computer.",
+    subtitle: "Your credentials are sent to Pronote by the app server and never stored.",
     tabs: { credentials: "Credentials", qr: "QR code", demo: "Demo" },
     url: "Your school’s Pronote address",
     urlPlaceholder: "https://0000000a.index-education.net/pronote/",

@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import { WebAppLogin } from "@/components/web-app/login";
 import { getDictionary, getLocale } from "@/i18n/server";
+import { appMetadata } from "@/lib/app-metadata";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const dict = await getDictionary();
-  return { title: dict.webApp.metadataTitle, description: dict.webApp.metadataDescription, robots: { index: false } };
+  const [dict, locale] = await Promise.all([getDictionary(), getLocale()]);
+  return appMetadata(dict.webApp, locale, "/login");
 }
 
 export default async function WebAppLoginPage() {
