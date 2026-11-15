@@ -2,7 +2,7 @@
 
 import { Add, Cross, Filter } from "@getpapillon/papicons";
 import { Children, type ReactNode, useState } from "react";
-import type { AttendanceDTO, PeriodsDTO } from "@/lib/pronote/types";
+import type { AbsenceDTO, AttendanceDTO, PeriodsDTO } from "@/lib/pronote/types";
 import { after, useApi } from "./api";
 import { useWebApp } from "./context";
 import { capitalize, formatDay, formatDuration, formatTime } from "./format";
@@ -117,6 +117,34 @@ function Item({
         <div className="mt-1 text-sm text-foreground/60">{detail}</div>
       )}
     </li>
+  );
+}
+
+function AbsenceTotals({ absences, units }: { absences: AbsenceDTO[]; units: { hours: string; minutes: string } }) {
+  const { t } = useWebApp();
+  const justified = absences.filter((absence) => absence.justified);
+  const unjustified = absences.filter((absence) => !absence.justified);
+  const sum = (list: AbsenceDTO[]) => list.reduce((total, absence) => total + absence.minutes, 0);
+  const tiles = [
+    { label: t.attendance.totalHours, list: absences, tone: "text-foreground" },
+    { label: t.attendance.justifiedMany, list: justified, tone: "text-impact-up" },
+    { label: t.attendance.unjustifiedMany, list: unjustified, tone: "text-impact-down" },
+  ];
+
+  return (
+    <div className="mb-4 grid grid-cols-3 gap-2 sm:gap-4">
+      {tiles.map((tile) => (
+        <div key={tile.label} className="rounded-xl border border-foreground/10 bg-surface p-3 sm:p-5">
+          <p className="text-xs font-medium text-foreground/55 sm:text-sm">{tile.label}</p>
+          <p className={`mt-1 text-xl font-semibold tabular-nums sm:text-3xl ${tile.tone}`}>
+            {formatDuration(sum(tile.list), units)}
+          </p>
+          <p className="mt-0.5 text-xs text-foreground/45">
+            {tile.list.length} {tile.list.length > 1 ? t.attendance.absenceMany : t.attendance.absenceOne}
+          </p>
+        </div>
+      ))}
+    </div>
   );
 }
 
@@ -308,6 +336,9 @@ export function WebAppAttendance() {
       >
         {(data) => (
           <>
+            {(kind === "all" || kind === "absences") && data.absences.length > 0 && (
+              <AbsenceTotals absences={data.absences} units={units} />
+            )}
             <div
               className={`grid grid-cols-1 gap-4 ${kind === "all" ? "lg:grid-cols-2" : ""}`}
             >
