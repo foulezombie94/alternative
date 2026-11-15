@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import type { LessonContentDTO } from "@/lib/pronote/types";
 import { useApi } from "./api";
 import { useWebApp } from "./context";
-import { addDays, endOfDay, formatDay, formatTime, startOfWeek } from "./format";
+import { addDays, endOfDay, formatDay, formatTime, schoolWeek } from "./format";
 import { Async, Attachments, Empty, Html, PageHeader, SubjectDot, RangeToggle, WeekNav } from "./ui";
 
 const pageSize = 30;
@@ -23,7 +23,7 @@ function plain(text: string | undefined) {
 
 export function WebAppContents() {
   const { t, locale } = useWebApp();
-  const [week, setWeek] = useState(() => startOfWeek(new Date()));
+  const [week, setWeek] = useState(() => schoolWeek());
   const [everything, setEverything] = useState(false);
   const [subject, setSubject] = useState("");
   const [search, setSearch] = useState("");

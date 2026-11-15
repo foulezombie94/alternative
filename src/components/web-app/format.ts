@@ -7,6 +7,19 @@ export function startOfWeek(date: Date) {
   return result;
 }
 
+export function schoolDay(date = new Date()) {
+  const result = new Date(date);
+  result.setHours(0, 0, 0, 0);
+  const weekday = result.getDay();
+  if (weekday === 6) result.setDate(result.getDate() + 2);
+  if (weekday === 0) result.setDate(result.getDate() + 1);
+  return result;
+}
+
+export function schoolWeek(date = new Date()) {
+  return startOfWeek(schoolDay(date));
+}
+
 export function addDays(date: Date, days: number) {
   const result = new Date(date);
   result.setDate(result.getDate() + days);

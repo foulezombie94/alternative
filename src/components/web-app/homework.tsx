@@ -5,7 +5,7 @@ import { useMemo, useState } from "react";
 import type { HomeworkDTO } from "@/lib/pronote/types";
 import { call, useApi } from "./api";
 import { useWebApp } from "./context";
-import { addDays, endOfDay, formatDay, startOfWeek } from "./format";
+import { addDays, endOfDay, formatDay, schoolWeek } from "./format";
 import { Async, Attachments, Html, PageHeader, SubjectDot, RangeToggle, WeekNav } from "./ui";
 
 const pageSize = 30;
@@ -74,7 +74,7 @@ function HomeworkCard({
 
 export function WebAppHomework() {
   const { t } = useWebApp();
-  const [week, setWeek] = useState(() => startOfWeek(new Date()));
+  const [week, setWeek] = useState(() => schoolWeek());
   const [everything, setEverything] = useState(false);
   const [shown, setShown] = useState(pageSize);
   const range = useMemo(() => {

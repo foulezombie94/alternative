@@ -10,7 +10,7 @@ import { type ApiFailure, sessionLostCodes } from "./api";
 import { useWebApp } from "./context";
 
 export { Attachments } from "./attachments";
-import { addDays, formatDuration, formatScore, formatShortDate, startOfWeek } from "./format";
+import { addDays, formatDuration, formatScore, formatShortDate, schoolDay, schoolWeek, startOfWeek } from "./format";
 
 export function PageHeader({ title, children }: { title: string; children?: ReactNode }) {
   return (
@@ -335,8 +335,8 @@ function WeekPicker({
           <button
             type="button"
             onClick={() => {
-              onChange(startOfWeek(new Date()));
-              onPickDay?.(new Date());
+              onChange(schoolWeek());
+              onPickDay?.(schoolDay());
               setOpen(false);
             }}
             className="mt-2 w-full rounded-md border border-foreground/10 px-3 py-1.5 text-sm font-medium transition-colors hover:border-foreground/30"
@@ -361,7 +361,7 @@ export function WeekNav({
   onPickDay?: (day: Date) => void;
 }) {
   const { t, locale } = useWebApp();
-  const current = startOfWeek(new Date()).getTime() === week.getTime();
+  const current = schoolWeek().getTime() === week.getTime();
   const button = "flex size-10 items-center justify-center rounded-full border border-foreground/10 bg-surface transition-colors hover:bg-foreground/10";
 
   return (
@@ -380,7 +380,10 @@ export function WeekNav({
         <button
           type="button"
           className="rounded-md border border-foreground/10 bg-surface px-4 py-2 text-sm font-medium transition-colors hover:bg-foreground/10 max-sm:w-full"
-          onClick={() => onChange(startOfWeek(new Date()))}
+          onClick={() => {
+            onChange(schoolWeek());
+            onPickDay?.(schoolDay());
+          }}
         >
           {t.common.thisWeek}
         </button>

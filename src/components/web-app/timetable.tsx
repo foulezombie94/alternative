@@ -4,7 +4,7 @@ import { Fragment, useMemo, useState, useSyncExternalStore } from "react";
 import { type CourseDTO, CourseKind, type CourseResourceDTO, CourseState, type HolidayDTO } from "@/lib/pronote/types";
 import { useApi } from "./api";
 import { useWebApp } from "./context";
-import { addDays, capitalize, dayKey, endOfDay, formatDay, formatDuration, formatTime, sameDay, startOfWeek } from "./format";
+import { addDays, capitalize, dayKey, endOfDay, formatDay, formatDuration, formatTime, sameDay, schoolDay, schoolWeek } from "./format";
 import { Async, Attachments, Dialog, Empty, Html, isLive, LiveProgress, PageHeader, useNow, WeekNav } from "./ui";
 
 const columnClasses: Record<number, string> = {
@@ -363,8 +363,8 @@ function DayCourses({
 
 export function WebAppTimetable() {
   const { t, locale } = useWebApp();
-  const [week, setWeek] = useState(() => startOfWeek(new Date()));
-  const [dayIndex, setDayIndex] = useState(() => Math.min(Math.max((new Date().getDay() + 6) % 7, 0), 4));
+  const [week, setWeek] = useState(() => schoolWeek());
+  const [dayIndex, setDayIndex] = useState(() => (schoolDay().getDay() + 6) % 7);
   const desktop = useSyncExternalStore(subscribeDesktop, () => window.matchMedia(desktopQuery).matches, () => false);
   const view = desktop ? "week" : "day";
   const [selected, setSelected] = useState<CourseDTO | null>(null);
@@ -380,7 +380,7 @@ export function WebAppTimetable() {
   function changeWeek(next: Date) {
     setWeek(next);
     const today = new Date();
-    if (startOfWeek(today).getTime() === next.getTime()) setDayIndex(Math.min((today.getDay() + 6) % 7, 6));
+    if (schoolWeek(today).getTime() === next.getTime()) setDayIndex((schoolDay(today).getDay() + 6) % 7);
   }
 
   return (
