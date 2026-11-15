@@ -484,7 +484,7 @@ export function Dialog({ title, onClose, children }: { title: string; onClose: (
         role="dialog"
         aria-modal
         aria-label={title}
-        className="max-h-dvh w-full max-w-xl overflow-y-auto rounded-xl bg-background p-6 shadow-2xl"
+        className="max-h-full w-full max-w-xl overflow-y-auto overscroll-contain rounded-xl bg-background p-6 shadow-2xl"
         onClick={(event) => event.stopPropagation()}
       >
         <div className="mb-4 flex items-start justify-between gap-4">

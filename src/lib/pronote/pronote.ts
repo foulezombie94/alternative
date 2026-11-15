@@ -53,7 +53,7 @@ import {
   type Attachment,
 } from "./vendor/pawnote";
 import { subjectAverage } from "./average";
-import { pronoteFetcher } from "./fetcher";
+import { pronoteFetcher, userAgent } from "./fetcher";
 import type { SchoolService } from "./service";
 import {
   type AttachmentDTO,
@@ -402,6 +402,25 @@ export class PronoteService implements SchoolService {
       demo: false,
       features: [...available],
     };
+  }
+
+  private photoCache?: Promise<{ src: string | null }>;
+
+  photo() {
+    this.photoCache ??= this.run(async (handle) => {
+      const url = handle.userResource.profilePicture?.url;
+      if (!url) return { src: null };
+      const response = await fetch(url, { headers: { "User-Agent": userAgent }, signal: AbortSignal.timeout(15_000) });
+      const type = response.headers.get("content-type")?.split(";")[0] ?? "";
+      if (!response.ok || !type.startsWith("image/")) return { src: null };
+      const buffer = await response.arrayBuffer();
+      if (buffer.byteLength > 1024 * 1024) return { src: null };
+      return { src: `data:${type};base64,${Buffer.from(buffer).toString("base64")}` };
+    }).catch((error) => {
+      this.photoCache = undefined;
+      throw error;
+    });
+    return this.photoCache;
   }
 
   account() {

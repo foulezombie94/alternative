@@ -283,6 +283,8 @@ async function runAction(service: SchoolService, action: string, body: Body): Pr
         typeof body.title === "string" ? body.title : "",
         typeof body.date === "string" ? body.date : "",
       );
+    case "photo":
+      return service.photo();
     case "survey":
       return service.survey(text(body, "id"), typeof body.title === "string" ? body.title : "", typeof body.date === "string" ? body.date : "");
     case "answerSurvey":

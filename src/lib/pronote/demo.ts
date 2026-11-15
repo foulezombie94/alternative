@@ -513,6 +513,10 @@ export class DemoService implements SchoolService {
     });
   }
 
+  async photo() {
+    return { src: null };
+  }
+
   async survey(): Promise<SurveyDTO> {
     const choice = (labels: string[]) => labels.map((label, index) => ({ position: index + 1, label, free: label === "Autre" }));
     const base: Omit<SurveyQuestionDTO, "answered" | "selected" | "text">[] = [

@@ -3,6 +3,7 @@
 import { Archive, ArrowLeft, Bookmark, Calendar, Chair, Cross, Grades, Home, Logout, Menu, Newspaper, Paper, Star, Tasks, TextBubble } from "@getpapillon/papicons";
 import type { Route } from "next";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Fragment, type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
@@ -71,11 +72,6 @@ export function WebAppShell({ t, locale, children }: { t: WebAppDictionary; loca
   }
 
   const user = profile.data;
-  const initials = user.name
-    .split(/\s+/)
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2);
 
   const links = visible.map(({ path, key, icon: SectionIcon, group }) => {
     const href = `${base}${path}`;
@@ -114,9 +110,7 @@ export function WebAppShell({ t, locale, children }: { t: WebAppDictionary; loca
         onClick={() => setAccountOpen(true)}
         className="mb-2 flex items-center gap-3 rounded-lg border border-foreground/10 bg-surface p-3 text-left transition-colors hover:border-foreground/30"
       >
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-primary font-semibold text-white">
-          {initials}
-        </span>
+        <Avatar name={user.name} />
         <span className="min-w-0">
           <span className="block truncate font-semibold">{user.name}</span>
           <span className="block truncate text-sm text-foreground/50">
@@ -188,6 +182,35 @@ export function WebAppShell({ t, locale, children }: { t: WebAppDictionary; loca
   );
 }
 
+function Avatar({ name, large = false }: { name: string; large?: boolean }) {
+  const photo = useApi<{ src: string | null }>("photo");
+  const src = photo.data?.src;
+  const initials = name
+    .split(/\s+/)
+    .map((part) => part[0])
+    .join("")
+    .slice(0, 2);
+  const size = large ? "size-16 text-xl" : "size-10";
+
+  if (src) {
+    return (
+      <Image
+        src={src}
+        alt=""
+        width={large ? 64 : 40}
+        height={large ? 64 : 40}
+        unoptimized
+        className={`${size} shrink-0 rounded-full bg-foreground/10 object-cover object-top`}
+      />
+    );
+  }
+  return (
+    <span className={`flex ${size} shrink-0 items-center justify-center rounded-full bg-primary font-semibold text-white`}>
+      {initials}
+    </span>
+  );
+}
+
 function AccountDialog({ onClose }: { onClose: () => void }) {
   const { t } = useWebApp();
   const state = useApi<AccountDTO>("account");
@@ -207,16 +230,21 @@ function AccountDialog({ onClose }: { onClose: () => void }) {
 
           return (
             <>
-              <p className="text-xl font-semibold">{data.name}</p>
-              {data.delegate && (
-                <p className="mt-2 inline-block rounded-md bg-accent/10 px-2.5 py-0.5 text-xs font-medium text-accent">
-                  {t.account.delegate}
-                </p>
-              )}
+              <div className="flex items-center gap-4">
+                <Avatar name={data.name} large />
+                <div className="min-w-0">
+                  <p className="text-xl font-semibold wrap-break-word">{data.name}</p>
+                  {data.delegate && (
+                    <p className="mt-1 inline-block rounded-md bg-accent/10 px-2.5 py-0.5 text-xs font-medium text-accent">
+                      {t.account.delegate}
+                    </p>
+                  )}
+                </div>
+              </div>
               <dl className="mt-5 flex flex-col divide-y divide-foreground/10 border-y border-foreground/10">
                 {rows.map(([label, value]) => (
-                  <div key={label} className="flex gap-4 py-3">
-                    <dt className="w-32 shrink-0 font-mono text-xs tracking-widest text-foreground/50 uppercase">{label}</dt>
+                  <div key={label} className="flex flex-col gap-1 py-3 sm:flex-row sm:gap-4">
+                    <dt className="shrink-0 font-mono text-xs tracking-widest text-foreground/50 uppercase sm:w-32">{label}</dt>
                     <dd className="min-w-0 font-medium wrap-anywhere whitespace-pre-line">{value}</dd>
                   </div>
                 ))}
@@ -334,7 +362,9 @@ function MobileBar({
             <nav aria-label={t.nav.label} className="flex flex-col gap-1">
               {nav}
             </nav>
-            <div className="mt-auto flex flex-col gap-1 pt-6">{account}</div>
+            <div className="mt-auto flex flex-col gap-1 pt-6" onClickCapture={() => setOpen(false)}>
+              {account}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
