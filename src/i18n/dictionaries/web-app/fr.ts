@@ -183,6 +183,9 @@ const webAppFr = {
     noHomework: "Aucun devoir cette semaine.",
   },
   grades: {
+    bySchool: "par l’établissement",
+    estimatedOn: "estimée au",
+    current: "moyenne actuelle",
     evolution: "Évolution",
     evolutionSubject: "Courbe à afficher",
     sinceStart: "depuis le début de la période",

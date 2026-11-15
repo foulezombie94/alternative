@@ -8,7 +8,7 @@ import { after, useApi } from "./api";
 import { GradesChart } from "./grades-chart";
 import { useWebApp } from "./context";
 import { formatScore, formatShortDate } from "./format";
-import { Async, Attachments, Dialog, PageHeader, PeriodSelect, SubjectDot } from "./ui";
+import { Async, Attachments, Dialog, GradeScore, PageHeader, PeriodSelect, SubjectDot } from "./ui";
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
@@ -30,9 +30,8 @@ function GradeDetail({ grade, subject, onClose }: { grade: GradeDTO; subject: Su
         {subject.name}
         {grade.date && ` · ${formatShortDate(grade.date, locale)}`}
       </p>
-      <p className="mb-6 text-5xl font-semibold tabular-nums text-primary">
-        {formatScore(grade.value, locale)}
-        <span className="text-2xl text-foreground/40">/{formatScore(grade.outOf, locale)}</span>
+      <p className="mb-6">
+        <GradeScore value={grade.value} outOf={grade.outOf} large />
       </p>
       <div className="grid grid-cols-2 gap-4 rounded-lg border border-foreground/10 bg-surface p-4 sm:grid-cols-4">
         <Stat label={t.grades.class} value={formatScore(grade.average, locale)} />
@@ -89,10 +88,7 @@ function SubjectCard({ subject, onPick }: { subject: SubjectDTO; onPick: (grade:
                     {grade.date && formatShortDate(grade.date, locale)} · {t.grades.coefficient} {grade.coefficient}
                   </span>
                 </span>
-                <span className="font-semibold tabular-nums">
-                  {formatScore(grade.value, locale)}
-                  <span className="text-sm font-normal text-foreground/40">/{formatScore(grade.outOf, locale)}</span>
-                </span>
+                <GradeScore value={grade.value} outOf={grade.outOf} />
               </button>
             </li>
           ))}
@@ -139,7 +135,7 @@ export function WebAppGrades() {
                   </div>
                 )}
               </div>
-              <GradesChart subjects={data.subjects} />
+              <GradesChart subjects={data.subjects} overall={overall.value} officialOverall={official} />
               <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
                 {data.subjects.map((subject) => (
                   <SubjectCard key={subject.id} subject={subject} onPick={(grade) => setSelected({ grade, subject })} />

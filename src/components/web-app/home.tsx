@@ -9,7 +9,7 @@ import { CourseState } from "@/lib/pronote/types";
 import { after, useApi } from "./api";
 import { useWebApp } from "./context";
 import { addDays, capitalize, endOfDay, formatDay, formatScore, formatShortDate, formatTime, sameDay } from "./format";
-import { Async, isLive, LiveProgress, Panel, SubjectDot, useNow } from "./ui";
+import { Async, GradeScore, isLive, LiveProgress, Panel, SubjectDot, useNow } from "./ui";
 
 function SeeAll({ path }: { path: string }) {
   const { t, locale } = useWebApp();
@@ -170,10 +170,7 @@ function Grades() {
                     <p className="truncate font-medium">{grade.subject}</p>
                     <p className="truncate text-sm text-foreground/50">{grade.description}</p>
                   </div>
-                  <span className="font-semibold tabular-nums">
-                    {formatScore(grade.value, locale)}
-                    <span className="text-sm font-normal text-foreground/40">/{formatScore(grade.outOf, locale)}</span>
-                  </span>
+                  <GradeScore value={grade.value} outOf={grade.outOf} />
                 </li>
               ))}
             </ul>

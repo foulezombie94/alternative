@@ -5,12 +5,12 @@ import DOMPurify from "dompurify";
 import { motion, useReducedMotion } from "motion/react";
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { Spinner } from "@/components/ui/spinner";
-import { CourseState, type PeriodDTO } from "@/lib/pronote/types";
+import { CourseState, type PeriodDTO, type Score } from "@/lib/pronote/types";
 import { type ApiFailure, sessionLostCodes } from "./api";
 import { useWebApp } from "./context";
 
 export { Attachments } from "./attachments";
-import { addDays, formatDuration, formatShortDate, startOfWeek } from "./format";
+import { addDays, formatDuration, formatScore, formatShortDate, startOfWeek } from "./format";
 
 export function PageHeader({ title, children }: { title: string; children?: ReactNode }) {
   return (
@@ -414,6 +414,45 @@ export function PeriodSelect({
         ))}
       </select>
     </label>
+  );
+}
+
+export function on20(value: Score, outOf: Score): number | null {
+  if (value.value === null || !outOf.value || outOf.value === 20) return null;
+  return (value.value / outOf.value) * 20;
+}
+
+export function GradeScore({ value, outOf, large = false }: { value: Score; outOf: Score; large?: boolean }) {
+  const { locale } = useWebApp();
+  const converted = on20(value, outOf);
+  if (large) {
+    return (
+      <span className="inline-flex flex-wrap items-baseline gap-x-4 gap-y-1">
+        <span className="text-5xl font-semibold tabular-nums text-primary">
+          {formatScore(value, locale)}
+          <span className="text-2xl text-foreground/40">/{formatScore(outOf, locale)}</span>
+        </span>
+        {converted !== null && (
+          <span className="rounded-full bg-foreground/5 px-3 py-1 text-lg font-semibold tabular-nums text-foreground/70">
+            {formatScore({ value: converted }, locale)}
+            <span className="font-normal text-foreground/40">/20</span>
+          </span>
+        )}
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex shrink-0 items-baseline gap-2">
+      <span className="font-semibold tabular-nums">
+        {formatScore(value, locale)}
+        <span className="text-sm font-normal text-foreground/40">/{formatScore(outOf, locale)}</span>
+      </span>
+      {converted !== null && (
+        <span className="rounded-full bg-foreground/5 px-2 py-0.5 text-xs font-medium tabular-nums text-foreground/60">
+          {formatScore({ value: converted }, locale)}/20
+        </span>
+      )}
+    </span>
   );
 }
 
