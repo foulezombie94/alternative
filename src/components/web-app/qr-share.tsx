@@ -34,6 +34,7 @@ export function QrShare() {
   const [pin, setPin] = useState("");
   const [loading, setLoading] = useState(false);
   const [failed, setFailed] = useState(false);
+  const [refused, setRefused] = useState<string | null>(null);
   const [expired, setExpired] = useState(false);
   const [generated, setGenerated] = useState<Generated | null>(null);
 
@@ -43,7 +44,12 @@ export function QrShare() {
     setFailed(false);
     setExpired(false);
     try {
-      const result = await call<{ data: string; expiresAt: string }>("qrCode", { pin });
+      const result = await call<{ data: string | null; expiresAt: string | null; pronoteUrl: string }>("qrCode", { pin });
+      if (!result.data || !result.expiresAt) {
+        setRefused(result.pronoteUrl);
+        return;
+      }
+      setRefused(null);
       const image = await QRCode.toDataURL(result.data, { margin: 2, width: 320, errorCorrectionLevel: "M" });
       setGenerated({ image, pin, expiresAt: new Date(result.expiresAt).getTime() });
     } catch {
@@ -108,6 +114,19 @@ export function QrShare() {
               {loading ? t.account.qrGenerating : t.account.qrGenerate}
             </button>
           </form>
+          {refused && (
+            <div className="flex flex-col items-start gap-3 rounded-md bg-foreground/5 p-3">
+              <p className="text-sm text-foreground/80">{t.account.qrRefused}</p>
+              <a
+                href={refused}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-white transition-opacity hover:opacity-90"
+              >
+                {t.account.qrOpenPronote}
+              </a>
+            </div>
+          )}
           {failed && (
             <p className="text-sm text-accent" role="alert">
               {t.account.qrFailed}

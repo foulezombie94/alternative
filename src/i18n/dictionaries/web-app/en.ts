@@ -96,6 +96,8 @@ const webAppEn: WebAppDictionary = {
     qrExpires: "Valid for {time}",
     qrExpired: "This QR code has expired.",
     qrNew: "New QR code",
+    qrRefused: "Pronote does not allow this QR code to be created from the app: only the Pronote website (through your ENT) can. Open Pronote and click the QR code icon next to your name.",
+    qrOpenPronote: "Open Pronote",
     qrFailed: "Pronote could not create the QR code. Try again in a moment.",
   },
   login: {

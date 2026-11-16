@@ -94,6 +94,8 @@ const webAppFr = {
     qrExpires: "Valable encore {time}",
     qrExpired: "Ce QR code a expiré.",
     qrNew: "Nouveau QR code",
+    qrRefused: "Pronote ne permet pas de créer ce QR code depuis l’app : seul le site Pronote (via l’ENT) en a le droit. Ouvre Pronote et clique sur l’icône QR code à côté de ton nom.",
+    qrOpenPronote: "Ouvrir Pronote",
     qrFailed: "Pronote n’a pas pu créer le QR code. Réessaie dans un instant.",
   },
   login: {

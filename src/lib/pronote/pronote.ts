@@ -52,6 +52,7 @@ import {
   TabLocation,
   timetableFromIntervals,
   type Attachment,
+  ServerSideError,
 } from "./vendor/pawnote";
 import { subjectAverage } from "./average";
 import { pronoteFetcher, userAgent } from "./fetcher";
@@ -414,10 +415,20 @@ export class PronoteService implements SchoolService {
   }
 
   qrCode(pin: string) {
-    return this.run(async (handle) => ({
-      data: await mobileQrCode(handle, pin),
-      expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
-    }));
+    return this.run(async (handle): Promise<{ data: string | null; expiresAt: string | null; pronoteUrl: string }> => {
+      const kind = handle.information.accountKind === 7 ? "parent" : handle.information.accountKind === 8 ? "professeur" : "eleve";
+      const pronoteUrl = `${handle.information.url}/${kind}.html`;
+      try {
+        return {
+          data: await mobileQrCode(handle, pin),
+          expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+          pronoteUrl,
+        };
+      } catch (error) {
+        if (error instanceof ServerSideError) return { data: null, expiresAt: null, pronoteUrl };
+        throw error;
+      }
+    });
   }
 
   private photoCache?: Promise<{ src: string | null; reason?: string }>;
