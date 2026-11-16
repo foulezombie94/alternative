@@ -128,9 +128,12 @@ export function GradesChart({
               height={graphHeight}
               role="img"
               aria-label={`${t.grades.overall} : ${formatScore({ value: points.at(-1)!.value }, locale)}/20`}
-              className="block touch-pan-y"
+              className="block cursor-crosshair touch-none select-none"
               onPointerMove={track}
-              onPointerDown={track}
+              onPointerDown={(event) => {
+                if (event.pointerType !== "mouse") event.currentTarget.setPointerCapture(event.pointerId);
+                track(event);
+              }}
               onPointerLeave={(event) => {
                 if (event.pointerType === "mouse") setHover(null);
               }}
