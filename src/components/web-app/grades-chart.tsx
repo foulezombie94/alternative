@@ -131,8 +131,9 @@ export function GradesChart({
               className="block touch-pan-y"
               onPointerMove={track}
               onPointerDown={track}
-              onPointerLeave={() => setHover(null)}
-              onPointerCancel={() => setHover(null)}
+              onPointerLeave={(event) => {
+                if (event.pointerType === "mouse") setHover(null);
+              }}
             >
               <defs>
                 <linearGradient id={gradientId} x1="0" x2="0" y1="0" y2="1">
