@@ -513,14 +513,6 @@ export class DemoService implements SchoolService {
     });
   }
 
-  async qrCode(pin: string) {
-    return {
-      data: JSON.stringify({ avecPageConnexion: false, jeton: `DEMO${pin}`, login: "DEMO", url: "https://demo.index-education.net/pronote/mobile.eleve.html" }),
-      expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
-      pronoteUrl: "https://demo.index-education.net/pronote/eleve.html",
-    };
-  }
-
   async photo() {
     return { src: null };
   }

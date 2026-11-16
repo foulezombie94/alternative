@@ -1,6 +1,6 @@
 "use client";
 
-import { Archive, ArrowLeft, Bookmark, Calendar, Chair, Cross, Grades, Home, Logout, Menu, Newspaper, Paper, QrCode, Star, Tasks, TextBubble } from "@getpapillon/papicons";
+import { Archive, ArrowLeft, Bookmark, Calendar, Chair, Cross, Grades, Home, Logout, Menu, Newspaper, Paper, Star, Tasks, TextBubble } from "@getpapillon/papicons";
 import type { Route } from "next";
 import Link from "next/link";
 import Image from "next/image";
@@ -10,7 +10,6 @@ import { Fragment, type ReactNode, useCallback, useEffect, useMemo, useState } f
 import type { Locale } from "@/i18n/config";
 import type { WebAppDictionary } from "@/i18n/dictionaries/web-app/fr";
 import { NotificationBell, useNotifications } from "./notifications";
-import { QrShare } from "./qr-share";
 import { easeOutPapillon } from "@/lib/motion";
 import type { AccountDTO, Feature, ProfileDTO } from "@/lib/pronote/types";
 import { call, useApi } from "./api";
@@ -40,7 +39,6 @@ export function WebAppShell({ t, locale, children }: { t: WebAppDictionary; loca
   const pathname = usePathname();
   const profile = useApi<ProfileDTO>("profile");
   const [accountOpen, setAccountOpen] = useState(false);
-  const [qrOpen, setQrOpen] = useState(false);
   const base = `/${locale}/app`;
 
   const sessionLost = useCallback(() => window.location.replace(`${base}/login`), [base]);
@@ -105,33 +103,21 @@ export function WebAppShell({ t, locale, children }: { t: WebAppDictionary; loca
 
   const account = (
     <>
-      <div className="mb-2 flex items-center gap-1 rounded-lg border border-foreground/10 bg-surface p-2 transition-colors hover:border-foreground/30">
-        <button
-          type="button"
-          aria-label={t.account.open}
-          aria-haspopup="dialog"
-          onClick={() => setAccountOpen(true)}
-          className="flex min-w-0 flex-1 items-center gap-2.5 rounded-md p-1 text-left"
-        >
-          <Avatar name={user.name} />
-          <span className="min-w-0">
-            <span className="block truncate text-sm font-semibold">{user.name}</span>
-            <span className="block truncate text-xs text-foreground/50">
-              {[user.className, user.school].filter(Boolean).join(" · ")}
-            </span>
+      <button
+        type="button"
+        aria-label={t.account.open}
+        aria-haspopup="dialog"
+        onClick={() => setAccountOpen(true)}
+        className="mb-2 flex items-center gap-3 rounded-lg border border-foreground/10 bg-surface p-3 text-left transition-colors hover:border-foreground/30"
+      >
+        <Avatar name={user.name} />
+        <span className="min-w-0">
+          <span className="block truncate font-semibold">{user.name}</span>
+          <span className="block truncate text-sm text-foreground/50">
+            {[user.className, user.school].filter(Boolean).join(" · ")}
           </span>
-        </button>
-        <button
-          type="button"
-          aria-label={t.account.qrTitle}
-          title={t.account.qrTitle}
-          aria-haspopup="dialog"
-          onClick={() => setQrOpen(true)}
-          className="flex size-9 shrink-0 items-center justify-center rounded-md text-foreground/60 transition-colors hover:bg-foreground/10 hover:text-foreground"
-        >
-          <QrCode className="size-5" />
-        </button>
-      </div>
+        </span>
+      </button>
       {showcaseEnabled && (
         <Link
           href={`/${locale}` as Route}
@@ -187,11 +173,6 @@ export function WebAppShell({ t, locale, children }: { t: WebAppDictionary; loca
         />
 
         {accountOpen && <AccountDialog onClose={() => setAccountOpen(false)} />}
-        {qrOpen && (
-          <Dialog title={t.account.qrTitle} onClose={() => setQrOpen(false)}>
-            <QrShare />
-          </Dialog>
-        )}
 
         <main className="min-w-0 flex-1 px-5 pt-4 pb-16 lg:px-10 lg:pt-10">
           <div className={["/timetable", "/homework", "/contents", "/evaluations"].some((path) => pathname.endsWith(path)) ? "w-full" : "mx-auto max-w-6xl"}>{children}</div>
