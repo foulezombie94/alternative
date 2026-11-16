@@ -1,6 +1,28 @@
 "use client";
 
-import { Archive, ArrowLeft, Bookmark, Calendar, Chair, Cross, Grades, Home, Logout, Menu, Newspaper, Paper, Star, Tasks, TextBubble } from "@getpapillon/papicons";
+import {
+  Archive,
+  ArrowLeft,
+  Bookmark,
+  Calendar,
+  Card,
+  Chair,
+  Crown,
+  GraduationHat,
+  Mail,
+  MapPin,
+  Phone,
+  Cross,
+  Grades,
+  Home,
+  Logout,
+  Menu,
+  Newspaper,
+  Paper,
+  Star,
+  Tasks,
+  TextBubble,
+} from "@getpapillon/papicons";
 import type { Route } from "next";
 import Link from "next/link";
 import Image from "next/image";
@@ -21,18 +43,84 @@ type Icon = typeof Home;
 
 type NavKey = keyof WebAppDictionary["nav"];
 
-const sections: { path: string; key: NavKey; icon: Icon; feature?: Feature; group?: NavKey }[] = [
+const sections: {
+  path: string;
+  key: NavKey;
+  icon: Icon;
+  feature?: Feature;
+  group?: NavKey;
+}[] = [
   { path: "", key: "home", icon: Home },
-  { path: "/contents", key: "contents", icon: Paper, feature: "contents", group: "groupTextbook" },
-  { path: "/homework", key: "homework", icon: Tasks, feature: "homework", group: "groupTextbook" },
-  { path: "/grades", key: "grades", icon: Grades, feature: "grades", group: "groupGrades" },
-  { path: "/report", key: "report", icon: Bookmark, feature: "report", group: "groupGrades" },
-  { path: "/documents", key: "documents", icon: Archive, feature: "documents", group: "groupGrades" },
-  { path: "/evaluations", key: "evaluations", icon: Star, feature: "evaluations", group: "groupSkills" },
-  { path: "/timetable", key: "timetable", icon: Calendar, feature: "timetable", group: "groupSchoolLife" },
-  { path: "/attendance", key: "attendance", icon: Chair, feature: "attendance", group: "groupSchoolLife" },
-  { path: "/news", key: "news", icon: Newspaper, feature: "news", group: "groupCommunication" },
-  { path: "/messages", key: "messages", icon: TextBubble, feature: "chat", group: "groupCommunication" },
+  {
+    path: "/contents",
+    key: "contents",
+    icon: Paper,
+    feature: "contents",
+    group: "groupTextbook",
+  },
+  {
+    path: "/homework",
+    key: "homework",
+    icon: Tasks,
+    feature: "homework",
+    group: "groupTextbook",
+  },
+  {
+    path: "/grades",
+    key: "grades",
+    icon: Grades,
+    feature: "grades",
+    group: "groupGrades",
+  },
+  {
+    path: "/report",
+    key: "report",
+    icon: Bookmark,
+    feature: "report",
+    group: "groupGrades",
+  },
+  {
+    path: "/documents",
+    key: "documents",
+    icon: Archive,
+    feature: "documents",
+    group: "groupGrades",
+  },
+  {
+    path: "/evaluations",
+    key: "evaluations",
+    icon: Star,
+    feature: "evaluations",
+    group: "groupSkills",
+  },
+  {
+    path: "/timetable",
+    key: "timetable",
+    icon: Calendar,
+    feature: "timetable",
+    group: "groupSchoolLife",
+  },
+  {
+    path: "/attendance",
+    key: "attendance",
+    icon: Chair,
+    feature: "attendance",
+    group: "groupSchoolLife",
+  },
+  {
+    path: "/news",
+    key: "news",
+    icon: Newspaper,
+    feature: "news",
+    group: "groupCommunication",
+  },
+  {
+    path: "/messages",
+    key: "messages",
+    icon: TextBubble,
+    feature: "chat",
+    group: "groupCommunication",
+  },
 ];
 
 export function WebAppShell({ t, locale, children }: { t: WebAppDictionary; locale: Locale; children: ReactNode }) {
@@ -61,7 +149,13 @@ export function WebAppShell({ t, locale, children }: { t: WebAppDictionary; loca
           t,
           locale,
           sessionLost,
-          profile: { name: "", firstName: "", school: "", demo: false, features: [] },
+          profile: {
+            name: "",
+            firstName: "",
+            school: "",
+            demo: false,
+            features: [],
+          },
         }}
       >
         <main className="flex min-h-dvh items-center justify-center px-6">
@@ -139,7 +233,9 @@ export function WebAppShell({ t, locale, children }: { t: WebAppDictionary; loca
   );
 
   const demoBadge = user.demo && (
-    <span className="rounded-md bg-primary/10 px-2.5 py-1 text-xs font-semibold whitespace-nowrap text-primary">{t.nav.demoBadge}</span>
+    <span className="rounded-md bg-primary/10 px-2.5 py-1 text-xs font-semibold whitespace-nowrap text-primary">
+      {t.nav.demoBadge}
+    </span>
   );
 
   return (
@@ -175,7 +271,15 @@ export function WebAppShell({ t, locale, children }: { t: WebAppDictionary; loca
         {accountOpen && <AccountDialog onClose={() => setAccountOpen(false)} />}
 
         <main className="min-w-0 flex-1 px-5 pt-4 pb-16 lg:px-10 lg:pt-10">
-          <div className={["/timetable", "/homework", "/contents", "/evaluations"].some((path) => pathname.endsWith(path)) ? "w-full" : "mx-auto max-w-6xl"}>{children}</div>
+          <div
+            className={
+              ["/timetable", "/homework", "/contents", "/evaluations"].some((path) => pathname.endsWith(path))
+                ? "w-full"
+                : "mx-auto max-w-6xl"
+            }
+          >
+            {children}
+          </div>
         </main>
       </div>
     </WebAppContext>
@@ -205,9 +309,55 @@ function Avatar({ name, large = false }: { name: string; large?: boolean }) {
     );
   }
   return (
-    <span className={`flex ${size} shrink-0 items-center justify-center rounded-full bg-primary font-semibold text-white`}>
+    <span
+      className={`flex ${size} shrink-0 items-center justify-center rounded-full bg-primary font-semibold text-white`}
+    >
       {initials}
     </span>
+  );
+}
+
+type InfoRowProps = {
+  icon: ReactNode;
+  label: string;
+  value: string;
+  href?: string;
+};
+
+function InfoRow({ icon, label, value, href }: InfoRowProps) {
+  const content = (
+    <>
+      <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
+        {icon}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-xs text-foreground/50">{label}</span>
+        <span className="block font-medium wrap-anywhere whitespace-pre-line">{value}</span>
+      </span>
+    </>
+  );
+  const className = "flex items-start gap-3 px-4 py-3";
+  return (
+    <li>
+      {href ? (
+        <a href={href} className={`${className} transition-colors hover:bg-foreground/5`}>
+          {content}
+        </a>
+      ) : (
+        <div className={className}>{content}</div>
+      )}
+    </li>
+  );
+}
+
+function InfoGroup({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <section className="flex flex-col gap-2">
+      <h3 className="px-1 font-mono text-xs font-medium tracking-widest text-foreground/50 uppercase">{title}</h3>
+      <ul className="divide-y divide-foreground/10 overflow-hidden rounded-lg border border-foreground/10 bg-surface">
+        {children}
+      </ul>
+    </section>
   );
 }
 
@@ -219,38 +369,82 @@ function AccountDialog({ onClose }: { onClose: () => void }) {
     <Dialog title={t.account.title} onClose={onClose}>
       <Async state={state}>
         {(data) => {
-          const rows = [
-            [t.account.class, data.className],
-            [t.account.school, data.school],
-            [t.account.email, data.email],
-            [t.account.phone, data.phone],
-            [t.account.address, data.address],
-            [t.account.ine, data.ine],
-          ].filter((row): row is [string, string] => Boolean(row[1]));
+          const contactRows: (InfoRowProps | false | undefined | "")[] = [
+            data.email && {
+              icon: <Mail className="size-4" />,
+              label: t.account.email,
+              value: data.email,
+              href: `mailto:${data.email}`,
+            },
+            data.phone && {
+              icon: <Phone className="size-4" />,
+              label: t.account.phone,
+              value: data.phone,
+              href: `tel:${data.phone.replace(/[^\d+]/g, "")}`,
+            },
+            data.address && {
+              icon: <MapPin className="size-4" />,
+              label: t.account.address,
+              value: data.address,
+            },
+          ];
+          const contact = contactRows.filter((row): row is InfoRowProps => Boolean(row));
+          const schoolingRows: (InfoRowProps | false | undefined | "")[] = [
+            data.className && {
+              icon: <GraduationHat className="size-4" />,
+              label: t.account.class,
+              value: data.className,
+            },
+            data.school && {
+              icon: <Home className="size-4" />,
+              label: t.account.school,
+              value: data.school,
+            },
+            data.ine && {
+              icon: <Card className="size-4" />,
+              label: t.account.ine,
+              value: data.ine,
+            },
+          ];
+          const schooling = schoolingRows.filter((row): row is InfoRowProps => Boolean(row));
 
           return (
-            <>
-              <div className="flex items-center gap-4">
+            <div className="flex flex-col gap-6">
+              <div className="flex flex-col items-center gap-3 rounded-lg bg-primary/5 px-4 py-6 text-center">
                 <Avatar name={data.name} large />
-                <div className="min-w-0">
+                <div className="flex flex-col items-center gap-2">
                   <p className="text-xl font-semibold wrap-break-word">{data.name}</p>
-                  {data.delegate && (
-                    <p className="mt-1 inline-block rounded-md bg-accent/10 px-2.5 py-0.5 text-xs font-medium text-accent">
-                      {t.account.delegate}
-                    </p>
-                  )}
+                  <div className="flex flex-wrap justify-center gap-1.5">
+                    {data.className && (
+                      <span className="rounded-full bg-background px-3 py-1 text-xs font-medium text-foreground/70">
+                        {data.className}
+                      </span>
+                    )}
+                    {data.delegate && (
+                      <span className="flex items-center gap-1 rounded-full bg-accent/10 px-3 py-1 text-xs font-medium text-accent">
+                        <Crown className="size-3.5" />
+                        {t.account.delegate}
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
-              <dl className="mt-5 flex flex-col divide-y divide-foreground/10 border-y border-foreground/10">
-                {rows.map(([label, value]) => (
-                  <div key={label} className="flex flex-col gap-1 py-3 sm:flex-row sm:gap-4">
-                    <dt className="shrink-0 font-mono text-xs tracking-widest text-foreground/50 uppercase sm:w-32">{label}</dt>
-                    <dd className="min-w-0 font-medium wrap-anywhere whitespace-pre-line">{value}</dd>
-                  </div>
-                ))}
-              </dl>
-              {!data.detailsAvailable && <p className="mt-4 text-sm text-foreground/50">{t.account.unavailable}</p>}
-            </>
+              {schooling.length > 0 && (
+                <InfoGroup title={t.account.schooling}>
+                  {schooling.map((row) => (
+                    <InfoRow key={row.label} {...row} />
+                  ))}
+                </InfoGroup>
+              )}
+              {contact.length > 0 && (
+                <InfoGroup title={t.account.contact}>
+                  {contact.map((row) => (
+                    <InfoRow key={row.label} {...row} />
+                  ))}
+                </InfoGroup>
+              )}
+              {!data.detailsAvailable && <p className="text-sm text-foreground/50">{t.account.unavailable}</p>}
+            </div>
           );
         }}
       </Async>

@@ -83,6 +83,8 @@ const webAppEn: WebAppDictionary = {
     phone: "Phone",
     address: "Address",
     ine: "INE number",
+    schooling: "School",
+    contact: "Contact details",
     delegate: "Class representative",
     unavailable: "Pronote does not give access to this account’s personal information.",
     open: "View my account",

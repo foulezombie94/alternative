@@ -81,6 +81,8 @@ const webAppFr = {
     phone: "Téléphone",
     address: "Adresse",
     ine: "Numéro INE",
+    schooling: "Scolarité",
+    contact: "Coordonnées",
     delegate: "Délégué de classe",
     unavailable: "Pronote ne donne pas accès aux informations personnelles de ce compte.",
     open: "Voir mon compte",

@@ -34,15 +34,9 @@ function Section({ title, children }: { title: string; children: ReactNode }) {
     <section className="rounded-xl border border-foreground/10 bg-surface p-5">
       <h2 className="mb-4 flex items-center gap-2 font-mono text-xs font-medium tracking-widest text-foreground/50 uppercase">
         {title}
-        <span className="rounded-md bg-foreground/10 px-2.5 text-sm">
-          {items.length}
-        </span>
+        <span className="rounded-md bg-foreground/10 px-2.5 text-sm">{items.length}</span>
       </h2>
-      {items.length > 0 && (
-        <ul className="flex flex-col gap-2">
-          {expanded ? items : items.slice(0, previewCount)}
-        </ul>
-      )}
+      {items.length > 0 && <ul className="flex flex-col gap-2">{expanded ? items : items.slice(0, previewCount)}</ul>}
       {hidden > 0 && (
         <button
           type="button"
@@ -110,11 +104,7 @@ function Face({ happy }: { happy: boolean }) {
       <circle cx="8.5" cy="10" r="1.2" fill="currentColor" stroke="none" />
       <circle cx="15.5" cy="10" r="1.2" fill="currentColor" stroke="none" />
       <path
-        d={
-          happy
-            ? "M7.5 14.5c1.2 1.6 2.7 2.4 4.5 2.4s3.3-.8 4.5-2.4"
-            : "M7.5 17c1.2-1.6 2.7-2.4 4.5-2.4s3.3.8 4.5 2.4"
-        }
+        d={happy ? "M7.5 14.5c1.2 1.6 2.7 2.4 4.5 2.4s3.3-.8 4.5-2.4" : "M7.5 17c1.2-1.6 2.7-2.4 4.5-2.4s3.3.8 4.5 2.4"}
       />
     </svg>
   );
@@ -148,18 +138,14 @@ function Item({
           {tag && (
             <span
               className={`rounded-md px-2.5 py-0.5 text-xs font-medium ${
-                tone === "good"
-                  ? "bg-primary/10 text-primary"
-                  : "bg-feature-schedule/10 text-feature-schedule"
+                tone === "good" ? "bg-primary/10 text-primary" : "bg-feature-schedule/10 text-feature-schedule"
               }`}
             >
               {tag}
             </span>
           )}
         </div>
-        {detail && (
-          <div className="mt-1 text-sm text-foreground/60">{detail}</div>
-        )}
+        {detail && <div className="mt-1 text-sm text-foreground/60">{detail}</div>}
       </div>
       {expand && (
         <ChevronDown
@@ -170,10 +156,7 @@ function Item({
     </>
   );
 
-  if (!expand)
-    return (
-      <li className="flex gap-3 rounded-lg bg-background p-4">{header}</li>
-    );
+  if (!expand) return <li className="flex gap-3 rounded-lg bg-background p-4">{header}</li>;
 
   return (
     <li className="rounded-lg bg-background">
@@ -188,10 +171,7 @@ function Item({
         {header}
       </button>
       {open && (
-        <div
-          id={panel}
-          className="border-t border-foreground/10 px-4 pt-3 pb-4"
-        >
+        <div id={panel} className="border-t border-foreground/10 px-4 pt-3 pb-4">
           {expand()}
         </div>
       )}
@@ -203,9 +183,7 @@ function Lesson({ course }: { course: CourseDTO }) {
   const { t, locale } = useWebApp();
   const canceled = course.state === CourseState.Canceled;
   return (
-    <li
-      className={`flex gap-3 rounded-md border border-foreground/10 bg-surface p-3 ${canceled ? "opacity-60" : ""}`}
-    >
+    <li className={`flex gap-3 rounded-md border border-foreground/10 bg-surface p-3 ${canceled ? "opacity-60" : ""}`}>
       <span
         aria-hidden
         className="w-1 shrink-0 rounded-full bg-foreground/20"
@@ -213,9 +191,7 @@ function Lesson({ course }: { course: CourseDTO }) {
       />
       <div className="min-w-0 flex-1">
         <div className="flex flex-wrap items-baseline justify-between gap-x-3">
-          <p className={`font-medium ${canceled ? "line-through" : ""}`}>
-            {course.subject}
-          </p>
+          <p className={`font-medium ${canceled ? "line-through" : ""}`}>{course.subject}</p>
           <p className="font-mono text-xs text-foreground/60">
             {formatTime(course.from, locale)} – {formatTime(course.to, locale)}
           </p>
@@ -257,26 +233,18 @@ function Lessons({
     return { from: start.toISOString(), to: end.toISOString() };
   }, [from, to]);
   const state = useApi<CourseDTO[]>("timetable", range);
-  const multiDay =
-    new Date(from).toDateString() !== new Date(to).toDateString();
+  const multiDay = new Date(from).toDateString() !== new Date(to).toDateString();
 
   return (
     <div className="flex flex-col gap-3">
       {children}
-      <p className="font-mono text-xs font-medium tracking-widest text-foreground/50 uppercase">
-        {title}
-      </p>
+      <p className="font-mono text-xs font-medium tracking-widest text-foreground/50 uppercase">{title}</p>
       <Async state={state}>
         {(courses) => {
-          const lessons = pick(
-            courses.filter((course) => course.kind === CourseKind.Lesson),
-          ).sort((a, b) => a.from.localeCompare(b.from));
-          if (!lessons.length)
-            return (
-              <p className="text-sm text-foreground/60">
-                {t.attendance.noLessons}
-              </p>
-            );
+          const lessons = pick(courses.filter((course) => course.kind === CourseKind.Lesson)).sort((a, b) =>
+            a.from.localeCompare(b.from),
+          );
+          if (!lessons.length) return <p className="text-sm text-foreground/60">{t.attendance.noLessons}</p>;
           const days = new Map<string, CourseDTO[]>();
           for (const lesson of lessons) {
             const key = new Date(lesson.from).toDateString();
@@ -286,11 +254,7 @@ function Lessons({
             <div className="flex flex-col gap-3">
               {[...days.values()].map((day) => (
                 <div key={day[0].from} className="flex flex-col gap-2">
-                  {multiDay && (
-                    <p className="text-sm font-medium">
-                      {capitalize(formatDay(day[0].from, locale))}
-                    </p>
-                  )}
+                  {multiDay && <p className="text-sm font-medium">{capitalize(formatDay(day[0].from, locale))}</p>}
                   <ul className="flex flex-col gap-2">
                     {day.map((course) => (
                       <Lesson key={course.id} course={course} />
@@ -311,9 +275,7 @@ function AbsenceDetail({ absence }: { absence: AbsenceDTO }) {
   const start = new Date(absence.from).getTime();
   const end = new Date(absence.to).getTime();
   const notes = [
-    absence.parentsMustJustify && !absence.justified
-      ? t.attendance.parentsMustJustify
-      : null,
+    absence.parentsMustJustify && !absence.justified ? t.attendance.parentsMustJustify : null,
     absence.regularized ? t.attendance.regularized : null,
   ].filter((note): note is string => Boolean(note));
 
@@ -323,20 +285,13 @@ function AbsenceDetail({ absence }: { absence: AbsenceDTO }) {
       to={absence.to}
       title={t.attendance.missedLessons}
       pick={(courses) =>
-        courses.filter(
-          (course) =>
-            new Date(course.from).getTime() < end &&
-            new Date(course.to).getTime() > start,
-        )
+        courses.filter((course) => new Date(course.from).getTime() < end && new Date(course.to).getTime() > start)
       }
     >
       {notes.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {notes.map((note) => (
-            <span
-              key={note}
-              className="rounded-md bg-foreground/5 px-2 py-0.5 text-xs font-medium text-foreground/70"
-            >
+            <span key={note} className="rounded-md bg-foreground/5 px-2 py-0.5 text-xs font-medium text-foreground/70">
               {note}
             </span>
           ))}
@@ -356,12 +311,9 @@ function DelayDetail({ date }: { date: string }) {
       title={t.attendance.lateLesson}
       pick={(courses) => {
         const during = courses.filter(
-          (course) =>
-            new Date(course.from).getTime() - delayWindow <= at &&
-            at < new Date(course.to).getTime(),
+          (course) => new Date(course.from).getTime() - delayWindow <= at && at < new Date(course.to).getTime(),
         );
-        const distance = (course: CourseDTO) =>
-          Math.abs(new Date(course.from).getTime() - at);
+        const distance = (course: CourseDTO) => Math.abs(new Date(course.from).getTime() - at);
         return during.sort((a, b) => distance(a) - distance(b)).slice(0, 1);
       }}
     />
@@ -380,8 +332,7 @@ function AbsenceTotals({
   const { t } = useWebApp();
   const justified = absences.filter((absence) => absence.justified);
   const unjustified = absences.filter((absence) => !absence.justified);
-  const sum = (list: AbsenceDTO[]) =>
-    list.reduce((total, absence) => total + absence.minutes, 0);
+  const sum = (list: AbsenceDTO[]) => list.reduce((total, absence) => total + absence.minutes, 0);
   const all = [
     { label: t.attendance.totalHours, list: absences, tone: "text-foreground" },
     {
@@ -395,31 +346,18 @@ function AbsenceTotals({
       tone: "text-impact-down",
     },
   ];
-  const tiles =
-    status === "all" ? all : status === "justified" ? [all[1]] : [all[2]];
+  const tiles = status === "all" ? all : status === "justified" ? [all[1]] : [all[2]];
 
   return (
-    <div
-      className={`mb-4 grid gap-2 sm:gap-4 ${tiles.length === 3 ? "grid-cols-3" : "grid-cols-1 sm:max-w-xs"}`}
-    >
+    <div className={`mb-4 grid gap-2 sm:gap-4 ${tiles.length === 3 ? "grid-cols-3" : "grid-cols-1 sm:max-w-xs"}`}>
       {tiles.map((tile) => (
-        <div
-          key={tile.label}
-          className="rounded-xl border border-foreground/10 bg-surface p-3 sm:p-5"
-        >
-          <p className="text-xs font-medium text-foreground/55 sm:text-sm">
-            {tile.label}
-          </p>
-          <p
-            className={`mt-1 text-xl font-semibold tabular-nums sm:text-3xl ${tile.tone}`}
-          >
+        <div key={tile.label} className="rounded-xl border border-foreground/10 bg-surface p-3 sm:p-5">
+          <p className="text-xs font-medium text-foreground/55 sm:text-sm">{tile.label}</p>
+          <p className={`mt-1 text-xl font-semibold tabular-nums sm:text-3xl ${tile.tone}`}>
             {formatDuration(sum(tile.list), units)}
           </p>
           <p className="mt-0.5 text-xs text-foreground/45">
-            {tile.list.length}{" "}
-            {tile.list.length > 1
-              ? t.attendance.absenceMany
-              : t.attendance.absenceOne}
+            {tile.list.length} {tile.list.length > 1 ? t.attendance.absenceMany : t.attendance.absenceOne}
           </p>
         </div>
       ))}
@@ -431,8 +369,7 @@ export function WebAppAttendance() {
   const { t, locale } = useWebApp();
   const periods = useApi<PeriodsDTO>("attendancePeriods");
   const [chosen, setChosen] = useState<string | null>(null);
-  const periodId =
-    chosen ?? periods.data?.defaultId ?? periods.data?.periods.at(-1)?.id;
+  const periodId = chosen ?? periods.data?.defaultId ?? periods.data?.periods.at(-1)?.id;
   const state = useApi<AttendanceDTO>(periodId ? "attendance" : null, {
     periodId,
   });
@@ -453,10 +390,7 @@ export function WebAppAttendance() {
       clear: () => setStatus("all"),
     },
     nature !== "all" && {
-      label:
-        nature === "positive"
-          ? t.attendance.encouragements
-          : t.attendance.remarks,
+      label: nature === "positive" ? t.attendance.encouragements : t.attendance.remarks,
       clear: () => setNature("all"),
     },
     order !== "newest" && {
@@ -477,13 +411,8 @@ export function WebAppAttendance() {
   };
 
   const sorted = <T,>(list: T[], date: (item: T) => string) =>
-    [...list].sort((a, b) =>
-      order === "newest"
-        ? date(b).localeCompare(date(a))
-        : date(a).localeCompare(date(b)),
-    );
-  const matches = (justified: boolean) =>
-    status === "all" || justified === (status === "justified");
+    [...list].sort((a, b) => (order === "newest" ? date(b).localeCompare(date(a)) : date(a).localeCompare(date(b))));
+  const matches = (justified: boolean) => status === "all" || justified === (status === "justified");
   const shows = (section: Kind) =>
     (kind === "all" || kind === section) &&
     (status === "all" || section === "absences" || section === "delays") &&
@@ -512,19 +441,12 @@ export function WebAppAttendance() {
           )}
         </button>
         {periods.data && periodId && (
-          <PeriodSelect
-            periods={periods.data.periods}
-            value={periodId}
-            onChange={setChosen}
-          />
+          <PeriodSelect periods={periods.data.periods} value={periodId} onChange={setChosen} />
         )}
       </PageHeader>
 
       {filtersOpen && (
-        <div
-          id="attendance-filters"
-          className="mb-5 rounded-xl border border-foreground/10 bg-surface p-5"
-        >
+        <div id="attendance-filters" className="mb-5 rounded-xl border border-foreground/10 bg-surface p-5">
           <div className="grid grid-cols-1 gap-5 md:grid-cols-3">
             <Chips
               label={t.attendance.filterKind}
@@ -607,33 +529,23 @@ export function WebAppAttendance() {
         })}
         empty={t.attendance.nothing}
         isEmpty={(data) =>
-          !data.absences.length &&
-          !data.delays.length &&
-          !data.punishments.length &&
-          !data.observations.length
+          !data.absences.length && !data.delays.length && !data.punishments.length && !data.observations.length
         }
       >
         {(data) => (
           <>
-            {shows("absences") &&
-              data.absences.some((absence) => matches(absence.justified)) && (
-                <AbsenceTotals
-                  absences={data.absences.filter((absence) =>
-                    matches(absence.justified),
-                  )}
-                  units={units}
-                  status={status}
-                />
-              )}
-            <div
-              className={`grid grid-cols-1 gap-4 ${kind === "all" ? "lg:grid-cols-2" : ""}`}
-            >
+            {shows("absences") && data.absences.some((absence) => matches(absence.justified)) && (
+              <AbsenceTotals
+                absences={data.absences.filter((absence) => matches(absence.justified))}
+                units={units}
+                status={status}
+              />
+            )}
+            <div className={`grid grid-cols-1 gap-4 ${kind === "all" ? "lg:grid-cols-2" : ""}`}>
               {shows("absences") && (
                 <Section title={t.attendance.absences}>
                   {sorted(
-                    data.absences.filter((absence) =>
-                      matches(absence.justified),
-                    ),
+                    data.absences.filter((absence) => matches(absence.justified)),
                     (absence) => absence.from,
                   ).map((absence) => (
                     <Item
@@ -641,16 +553,12 @@ export function WebAppAttendance() {
                       title={`${capitalize(formatDay(absence.from, locale))} · ${formatDuration(absence.minutes, units)}`}
                       detail={
                         <>
-                          {t.attendance.from} {formatTime(absence.from, locale)}{" "}
-                          {t.attendance.to} {formatTime(absence.to, locale)}
+                          {t.attendance.from} {formatTime(absence.from, locale)} {t.attendance.to}{" "}
+                          {formatTime(absence.to, locale)}
                           {absence.reason && ` · ${absence.reason}`}
                         </>
                       }
-                      tag={
-                        absence.justified
-                          ? t.common.justified
-                          : t.common.notJustified
-                      }
+                      tag={absence.justified ? t.common.justified : t.common.notJustified}
                       tone={absence.justified ? "good" : "bad"}
                       expand={() => <AbsenceDetail absence={absence} />}
                     />
@@ -666,17 +574,10 @@ export function WebAppAttendance() {
                     <Item
                       key={delay.id}
                       title={`${capitalize(formatDay(delay.date, locale))} · ${delay.minutes} ${t.common.minutes}`}
-                      detail={[
-                        `${capitalize(t.attendance.at)} ${formatTime(delay.date, locale)}`,
-                        delay.reason,
-                      ]
+                      detail={[`${capitalize(t.attendance.at)} ${formatTime(delay.date, locale)}`, delay.reason]
                         .filter(Boolean)
                         .join(" · ")}
-                      tag={
-                        delay.justified
-                          ? t.common.justified
-                          : t.common.notJustified
-                      }
+                      tag={delay.justified ? t.common.justified : t.common.notJustified}
                       tone={delay.justified ? "good" : "bad"}
                       expand={() => <DelayDetail date={delay.date} />}
                     />
@@ -685,10 +586,7 @@ export function WebAppAttendance() {
               )}
               {shows("punishments") && (
                 <Section title={t.attendance.punishments}>
-                  {sorted(
-                    data.punishments,
-                    (punishment) => punishment.date,
-                  ).map((punishment) => (
+                  {sorted(data.punishments, (punishment) => punishment.date).map((punishment) => (
                     <Item
                       key={punishment.id}
                       title={`${punishment.nature} · ${capitalize(formatDay(punishment.date, locale))}`}
@@ -704,9 +602,7 @@ export function WebAppAttendance() {
                               {t.attendance.reason} : {punishment.reason}
                             </p>
                           )}
-                          {punishment.circumstances && (
-                            <p>{punishment.circumstances}</p>
-                          )}
+                          {punishment.circumstances && <p>{punishment.circumstances}</p>}
                           {punishment.work && (
                             <p>
                               {t.attendance.work} : {punishment.work}
@@ -714,11 +610,7 @@ export function WebAppAttendance() {
                           )}
                         </div>
                       }
-                      tag={
-                        punishment.exclusion
-                          ? t.attendance.exclusion
-                          : formatDuration(punishment.minutes, units)
-                      }
+                      tag={punishment.exclusion ? t.attendance.exclusion : formatDuration(punishment.minutes, units)}
                       tone="bad"
                     />
                   ))}
@@ -728,27 +620,17 @@ export function WebAppAttendance() {
                 <Section title={t.attendance.observations}>
                   {sorted(
                     data.observations.filter(
-                      (observation) =>
-                        nature === "all" ||
-                        observation.positive === (nature === "positive"),
+                      (observation) => nature === "all" || observation.positive === (nature === "positive"),
                     ),
                     (observation) => observation.date,
                   ).map((observation) => (
                     <Item
                       key={observation.id}
                       title={observation.name}
-                      detail={[
-                        capitalize(formatDay(observation.date, locale)),
-                        observation.subject,
-                        observation.reason,
-                      ]
+                      detail={[capitalize(formatDay(observation.date, locale)), observation.subject, observation.reason]
                         .filter(Boolean)
                         .join(" · ")}
-                      tag={
-                        observation.positive
-                          ? t.attendance.encouragement
-                          : t.attendance.remark
-                      }
+                      tag={observation.positive ? t.attendance.encouragement : t.attendance.remark}
                       tone={observation.positive ? "good" : "bad"}
                       icon={<Face happy={observation.positive} />}
                     />
