@@ -60,8 +60,7 @@ export function QrShare() {
   };
 
   return (
-    <section className="mt-6 flex flex-col gap-3 rounded-lg border border-foreground/10 bg-surface p-4">
-      <h3 className="font-semibold">{t.account.qrTitle}</h3>
+    <section className="flex flex-col gap-3">
       {generated && !expired ? (
         <div className="flex flex-col items-center gap-3 text-center">
           <Image

@@ -1,6 +1,6 @@
 "use client";
 
-import { Archive, ArrowLeft, Bookmark, Calendar, Chair, Cross, Grades, Home, Logout, Menu, Newspaper, Paper, Star, Tasks, TextBubble } from "@getpapillon/papicons";
+import { Archive, ArrowLeft, Bookmark, Calendar, Chair, Cross, Grades, Home, Logout, Menu, Newspaper, Paper, QrCode, Star, Tasks, TextBubble } from "@getpapillon/papicons";
 import type { Route } from "next";
 import Link from "next/link";
 import Image from "next/image";
@@ -40,6 +40,7 @@ export function WebAppShell({ t, locale, children }: { t: WebAppDictionary; loca
   const pathname = usePathname();
   const profile = useApi<ProfileDTO>("profile");
   const [accountOpen, setAccountOpen] = useState(false);
+  const [qrOpen, setQrOpen] = useState(false);
   const base = `/${locale}/app`;
 
   const sessionLost = useCallback(() => window.location.replace(`${base}/login`), [base]);
@@ -104,21 +105,33 @@ export function WebAppShell({ t, locale, children }: { t: WebAppDictionary; loca
 
   const account = (
     <>
-      <button
-        type="button"
-        aria-label={t.account.open}
-        aria-haspopup="dialog"
-        onClick={() => setAccountOpen(true)}
-        className="mb-2 flex items-center gap-3 rounded-lg border border-foreground/10 bg-surface p-3 text-left transition-colors hover:border-foreground/30"
-      >
-        <Avatar name={user.name} />
-        <span className="min-w-0">
-          <span className="block truncate font-semibold">{user.name}</span>
-          <span className="block truncate text-sm text-foreground/50">
-            {[user.className, user.school].filter(Boolean).join(" · ")}
+      <div className="mb-2 flex items-center gap-1 rounded-lg border border-foreground/10 bg-surface p-2 transition-colors hover:border-foreground/30">
+        <button
+          type="button"
+          aria-label={t.account.open}
+          aria-haspopup="dialog"
+          onClick={() => setAccountOpen(true)}
+          className="flex min-w-0 flex-1 items-center gap-2.5 rounded-md p-1 text-left"
+        >
+          <Avatar name={user.name} />
+          <span className="min-w-0">
+            <span className="block truncate text-sm font-semibold">{user.name}</span>
+            <span className="block truncate text-xs text-foreground/50">
+              {[user.className, user.school].filter(Boolean).join(" · ")}
+            </span>
           </span>
-        </span>
-      </button>
+        </button>
+        <button
+          type="button"
+          aria-label={t.account.qrTitle}
+          title={t.account.qrTitle}
+          aria-haspopup="dialog"
+          onClick={() => setQrOpen(true)}
+          className="flex size-9 shrink-0 items-center justify-center rounded-md text-foreground/60 transition-colors hover:bg-foreground/10 hover:text-foreground"
+        >
+          <QrCode className="size-5" />
+        </button>
+      </div>
       {showcaseEnabled && (
         <Link
           href={`/${locale}` as Route}
@@ -174,6 +187,11 @@ export function WebAppShell({ t, locale, children }: { t: WebAppDictionary; loca
         />
 
         {accountOpen && <AccountDialog onClose={() => setAccountOpen(false)} />}
+        {qrOpen && (
+          <Dialog title={t.account.qrTitle} onClose={() => setQrOpen(false)}>
+            <QrShare />
+          </Dialog>
+        )}
 
         <main className="min-w-0 flex-1 px-5 pt-4 pb-16 lg:px-10 lg:pt-10">
           <div className={["/timetable", "/homework", "/contents", "/evaluations"].some((path) => pathname.endsWith(path)) ? "w-full" : "mx-auto max-w-6xl"}>{children}</div>
@@ -251,7 +269,6 @@ function AccountDialog({ onClose }: { onClose: () => void }) {
                 ))}
               </dl>
               {!data.detailsAvailable && <p className="mt-4 text-sm text-foreground/50">{t.account.unavailable}</p>}
-              <QrShare />
             </>
           );
         }}
