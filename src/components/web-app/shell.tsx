@@ -324,7 +324,7 @@ type InfoRowProps = {
   href?: string;
 };
 
-function InfoRow({ icon, label, value, href }: InfoRowProps) {
+function InfoRow({ icon, label, value, href, external }: InfoRowProps) {
   const content = (
     <>
       <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary">
@@ -340,7 +340,11 @@ function InfoRow({ icon, label, value, href }: InfoRowProps) {
   return (
     <li>
       {href ? (
-        <a href={href} className={`${className} transition-colors hover:bg-foreground/5`}>
+        <a
+          href={href}
+          {...(external && { target: "_blank", rel: "noopener noreferrer" })}
+          className={`${className} transition-colors hover:bg-foreground/5`}
+        >
           {content}
         </a>
       ) : (
@@ -399,6 +403,8 @@ function AccountDialog({ onClose }: { onClose: () => void }) {
               icon: <Home className="size-4" />,
               label: t.account.school,
               value: data.school,
+              href: `https://www.google.com/search?q=${encodeURIComponent(data.school)}`,
+              external: true,
             },
             data.ine && {
               icon: <Card className="size-4" />,
