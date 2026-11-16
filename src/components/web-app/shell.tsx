@@ -10,6 +10,7 @@ import { Fragment, type ReactNode, useCallback, useEffect, useMemo, useState } f
 import type { Locale } from "@/i18n/config";
 import type { WebAppDictionary } from "@/i18n/dictionaries/web-app/fr";
 import { NotificationBell, useNotifications } from "./notifications";
+import { QrShare } from "./qr-share";
 import { easeOutPapillon } from "@/lib/motion";
 import type { AccountDTO, Feature, ProfileDTO } from "@/lib/pronote/types";
 import { call, useApi } from "./api";
@@ -250,6 +251,7 @@ function AccountDialog({ onClose }: { onClose: () => void }) {
                 ))}
               </dl>
               {!data.detailsAvailable && <p className="mt-4 text-sm text-foreground/50">{t.account.unavailable}</p>}
+              <QrShare />
             </>
           );
         }}

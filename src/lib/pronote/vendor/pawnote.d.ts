@@ -23,3 +23,4 @@ export declare const newsSurveyExact: (
   survey: { id: string; title?: string; public?: unknown },
   questions: SurveySendQuestion[],
 ) => Promise<void>;
+export declare const mobileQrCode: (session: SessionHandle, pin: string) => Promise<string>;

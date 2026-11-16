@@ -283,6 +283,11 @@ async function runAction(service: SchoolService, action: string, body: Body): Pr
         typeof body.title === "string" ? body.title : "",
         typeof body.date === "string" ? body.date : "",
       );
+    case "qrCode": {
+      const pin = text(body, "pin", 4);
+      if (!/^\d{4}$/.test(pin)) throw new InputError("pin");
+      return service.qrCode(pin);
+    }
     case "photo":
       return service.photo();
     case "survey":

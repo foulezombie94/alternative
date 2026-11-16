@@ -36,6 +36,7 @@ import {
   newsInformationAcknowledge,
   newsAcknowledgeExact,
   newsSurveyExact,
+  mobileQrCode,
   notebook,
   NotebookObservationKind,
   parseTimetable,
@@ -410,6 +411,13 @@ export class PronoteService implements SchoolService {
       demo: false,
       features: [...available],
     };
+  }
+
+  qrCode(pin: string) {
+    return this.run(async (handle) => ({
+      data: await mobileQrCode(handle, pin),
+      expiresAt: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+    }));
   }
 
   private photoCache?: Promise<{ src: string | null; reason?: string }>;

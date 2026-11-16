@@ -25,6 +25,7 @@ export interface SchoolService {
   profile(): Promise<ProfileDTO>;
   account(): Promise<AccountDTO>;
   photo(): Promise<{ src: string | null; reason?: string }>;
+  qrCode(pin: string): Promise<{ data: string; expiresAt: string }>;
   timetable(from: Date, to: Date): Promise<CourseDTO[]>;
   holidays(): Promise<HolidayDTO[]>;
   upcomingTests(): Promise<UpcomingTestsDTO>;
