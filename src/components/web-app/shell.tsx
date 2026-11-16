@@ -322,6 +322,7 @@ type InfoRowProps = {
   label: string;
   value: string;
   href?: string;
+  external?: boolean;
 };
 
 function InfoRow({ icon, label, value, href, external }: InfoRowProps) {
